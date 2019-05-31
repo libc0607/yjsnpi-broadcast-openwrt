@@ -130,13 +130,18 @@ o_video_rxbuf.placeholder = 1
 o_video_rxbuf.datatype = "range(0,32)"
 o_video_rxbuf:depends("mode", "rx")
 -- wbc.video.fps: Video FPS
-o_video_fps = s_video:option(ListValue, "fps", translate("Video FPS"))
+o_video_fps = s_video:option(ListValue, "fps", translate("Video FPS"), translate("Make sure that both your screen and camera support that rate"))
 o_video_fps.default = 48
 o_video_fps.placeholder = 48
 o_video_fps:value(30, "30 fps")
 o_video_fps:value(40, "40 fps")
 o_video_fps:value(48, "48 fps")
 o_video_fps:value(59.9, "59.9 fps")
+o_video_fps:value(60, "60 fps")
+o_video_fps:value(90, "90 fps")
+o_video_fps:value(120, "120 fps")
+o_video_fps:value(144, "144 fps")
+o_video_fps:value(240, "240 fps")
 -- wbc.video.imgsize: Video resolution
 o_video_imgsize = s_video:option(ListValue, "imgsize", translate("Img Size (resolution)"))
 o_video_imgsize.default = "1280x720"
@@ -161,7 +166,7 @@ o_video_bitrate_percent.placeholder = 65
 o_video_bitrate_percent.datatype = "range(0,100)"
 o_video_bitrate_percent:depends("bitrate_mode", "auto")
 -- wbc.video.bitrate_manual: Bitrate Manual
-o_video_bitrate_manual = s_video:option(Value, "bitrate_manual", translate("Video Bitrate Manual"))
+o_video_bitrate_manual = s_video:option(Value, "bitrate_manual", translate("Video Bitrate Manual (kbit/s)"))
 o_video_bitrate_manual.default = 5000
 o_video_bitrate_manual.placeholder = 5000
 o_video_bitrate_manual.datatype = "range(500,16000)"
@@ -177,11 +182,30 @@ o_video_extraparams = s_video:option(Value, "extraparams", translate("raspivid E
 o_video_extraparams.default = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams.placeholder = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams:depends("mode", "tx")
+-- wbc.video.save_enable: Video Save Enable
+o_video_save_enable = s_video:option(Flag, "save_enable", translate("Enable Video Save"))
+o_video_save_enable.rmempty = false
+o_video_save_enable:depends("mode", "rx")
 -- wbc.video.savepath: Save Raw Video To Path
 o_video_savepath = s_video:option(Value, "savepath", translate("Save Raw Video To Path"))
 o_video_savepath.default = '/mnt/sda1/wbc_video'
 o_video_savepath.placeholder = '/mnt/sda1/wbc_video'
-o_video_savepath:depends("mode", "rx")
+o_video_savepath:depends("save_enable", 1)
+-- wbc.video.encrypt_enable: Video Encrypt Enable
+o_video_encrypt_enable = s_video:option(Flag, "save_enable", translate("Enable Video Encrypt"), translate("Attention: Higher CPU Cost"))
+o_video_save_enable.rmempty = false
+-- wbc.video.encrypt_method: Video Encrypt Method
+o_video_encrypt_method = s_video:option(Value, "encrypt_method", translate("Encrypt Method"), translate("Need OpenSSL installed"))
+o_video_encrypt_method.rmempty = false
+o_video_encrypt_method:value("aes-128-cfb")
+o_video_encrypt_method:value("blowfish")
+o_video_encrypt_method.default = "blowfish"
+o_video_encrypt_method:depends("save_enable", 1)
+-- wbc.video.password: Encrypt Password
+o_video_encrypt_password = s_video:option(Value, "encrypt_password", translate("Password"))
+o_video_encrypt_password.rmempty = false
+o_video_encrypt_password.password = true
+o_video_encrypt_password:depends("enable", 1)
 
 
 -- wbc.rssi: RSSI settings
@@ -216,8 +240,8 @@ o_telemetry_mode.rmempty = false
 o_telemetry_mode:value("tx", translate("Transceiver"))
 o_telemetry_mode:value("rx", translate("Receiver"))
 o_telemetry_mode.default = "tx"
--- wbc.telemetry.uart: Telemetry Input UART Interface
-o_telemetry_uart = s_telemetry:option(ListValue, "uart", translate("Telemetry Input UART Interface"))
+-- wbc.telemetry.uart: Telemetry UART Interface
+o_telemetry_uart = s_telemetry:option(ListValue, "uart", translate("Telemetry UART Interface"))
 for k,v in ipairs(tty_list) do 
 	o_telemetry_uart:value(v) 
 end
@@ -270,11 +294,16 @@ o_telemetry_bitrate:depends("mode", "tx")
 o_telemetry_send_ip_port = s_telemetry:option(Value, "send_ip_port", translate("Send Telemetry Data to IP:Port"))
 o_telemetry_send_ip_port.datatype = "ipaddrport"
 o_telemetry_send_ip_port:depends("mode", "rx")
+-- wbc.telemetry.save_enable: Telemetry Save Enable
+o_telemetry_save_enable = s_telemetry:option(Flag, "save_enable", translate("Enable Telemetry Save"))
+o_telemetry_save_enable.rmempty = false
+o_telemetry_save_enable:depends("mode", "rx")
 -- wbc.telemetry.savepath: Save Telemetry Data To Path
 o_telemetry_savepath = s_telemetry:option(Value, "telemetry", translate("Save Telemetry Data To Path"))
 o_telemetry_savepath.default = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath.placeholder = '/mnt/sda1/wbc_telemetry'
-o_telemetry_savepath:depends("mode", "rx")
+o_telemetry_savepath:depends("save_enable", 1)
+
 
 -- wbc.uplink: Uplink settings
 s_uplink = m:section(TypedSection, "uplink", translate("Uplink Settings"))
@@ -316,8 +345,8 @@ o_uplink_bitrate:value(24, "24 Mbps")
 o_uplink_bitrate:value(36, "36 Mbps")
 o_uplink_bitrate.default = 6
 o_uplink_bitrate:depends("mode", "tx")
--- wbc.uplink.uart: Uplink Input UART Interface (Ground)
-o_uplink_uart = s_uplink:option(ListValue, "uart", translate("Uplink Input UART Interface"))
+-- wbc.uplink.uart: Uplink UART Interface (Ground)
+o_uplink_uart = s_uplink:option(ListValue, "uart", translate("Uplink UART Interface"))
 for k,v in ipairs(tty_list) do 
 	o_uplink_uart:value(v) 
 end
@@ -346,35 +375,5 @@ o_uplink_listen_port.placeholder = 35002
 o_uplink_listen_port.default = 35002
 o_uplink_listen_port:depends("mode", "tx")
 
--- wbc.log: Log settings
-s_log = m:section(TypedSection, "log", translate("Log Settings"))
-s_log.anonymous = true
-s_log.addremove = false
--- wbc.log.enable: Log Enable
-o_log_enable = s_log:option(Flag, "enable", translate("Enable Log"))
-o_log_enable.rmempty = false
--- wbc.log.save_dir: Log Save to Dir
-o_log_save_dir = s_log:option(Value, "save_dir", translate("Log Save to Dir"))
-o_log_save_dir.rmempty = false
-
--- wbc.encrypt: Encrypt settings
-s_encrypt = m:section(TypedSection, "encrypt", translate("Encrypt Settings"))
-s_encrypt.anonymous = true
-s_encrypt.addremove = false
--- wbc.encrypt.enable: Encrypt Enable
-o_encrypt_enable = s_encrypt:option(Flag, "enable", translate("Enable Encrypt"))
-o_encrypt_enable.rmempty = false
--- wbc.encrypt.method: Encrypt Method
-o_encrypt_method = s_encrypt:option(Value, "method", translate("Encrypt Method"))
-o_encrypt_method.rmempty = false
-o_encrypt_method:value("aes-128-cfb")
-o_encrypt_method:value("blowfish")
-o_encrypt_method.default = "blowfish"
-o_encrypt_method:depends("enable", 1)
--- wbc.encrypt.password: Encrypt Password
-o_encrypt_password = s_encrypt:option(Value, "password", translate("Password"))
-o_encrypt_password.rmempty = false
-o_encrypt_password.password = true
-o_encrypt_password:depends("enable", 1)
 
 return m
