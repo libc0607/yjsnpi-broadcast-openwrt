@@ -37,6 +37,9 @@ msgstr "中心频率"
 msgid "Channel Bandwidth"
 msgstr "频宽"
 
+msgid "Note: ath9k only"
+msgstr "注：暂仅支持使用 ath9k 驱动的网卡"
+
 msgid "Video Transfer Settings"
 msgstr "视频传输设置"
 
@@ -122,7 +125,7 @@ msgid "Send Telemetry Data to IP:Port"
 msgstr "将收到的遥测数据发送到 IP:Port"
 
 msgid "Uplink Settings"
-msgstr "上行链路设置"
+msgstr "上行设置"
 
 msgid "Enable Uplink"
 msgstr "启用上行传输"
@@ -143,7 +146,7 @@ msgid "Uplink UART Interface"
 msgstr "上行串口"
 
 msgid "Uplink UART Baud Rate"
-msgstr "上行数据输入波特率"
+msgstr "上行数据波特率"
 
 msgid "Uplink Protocol"
 msgstr "上行数据协议"
@@ -223,7 +226,8 @@ msgstr "吃U注意"
 msgid "Need OpenSSL installed"
 msgstr "需要安装 OpenSSL"
 
-
+msgid "Uplink RX Protocol"
+msgstr "上行接收输出协议"
 
 
 

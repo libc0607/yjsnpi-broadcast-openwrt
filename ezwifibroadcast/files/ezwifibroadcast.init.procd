@@ -87,17 +87,18 @@ video_tx_instance() {
 }
 
 video_rx_instance() {
+	mkdir -p $(uci get wbc.video.savepath)
 	procd_open_instance
 	procd_set_param command socat -u EXEC:"/usr/sbin/rx -p $(uci get wbc.video.port) -b $(uci get wbc.video.datanum) -r $(uci get wbc.video.fecnum) -f $(uci get wbc.video.packetsize) -d $(uci get wbc.video.rxbuf) $(uci get wbc.nic.iface)"
-	if [ $(uci get wbc.video.save_enable) -eq 1 ]; then
+	if [ $(uci get wbc.video.save_enable 2>/dev/null) -eq 1 ]  2>/dev/null ; then	# Magic!
 		procd_append_param command EXEC:"/usr/sbin/suftees 30000 $(uci get wbc.video.send_ip_port|cut -d ':' -f 1) $(uci get wbc.video.send_ip_port|cut -d ':' -f 2) $(uci get wbc.video.savepath)/video-$(date +%Y%m%d).raw" 
 	else
 		procd_append_param command UDP:$(uci get wbc.video.send_ip_port),sourceport=30000
 	fi
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
-	procd_set_param pidfile /var/run/wbc/videorx.pid
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100} 
+	procd_set_param pidfile /var/run/wbc/videorx.pid 
 	procd_close_instance
 }
 
@@ -144,7 +145,7 @@ telemetry_rx_instance() {
 	stty -F $(uci get wbc.telemetry.uart) $STTY_ARGS $(uci get wbc.telemetry.baud) 
 	procd_open_instance
 	procd_set_param command socat -u EXEC:"/usr/sbin/rx_rc_telemetry_buf -p $(uci get wbc.telemetry.port) -b 19200 -s /dev/null -o 1 -r 0 $(uci get wbc.nic.iface)" 
-	if [ $(uci get wbc.telemetry.save_enable) -eq 1 ]; then
+	if [ $(uci get wbc.telemetry.save_enable 2>/dev/null) -eq 1 ] 2>/dev/null; then
 		procd_append_param command EXEC:"/usr/sbin/suftees 30002 $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1) $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2) $(uci get wbc.telemetry.savepath)/telemetry-$(date +%Y%m%d).raw $(uci get wbc.telemetry.uart)"
 	else
 		procd_append_param command EXEC:"/usr/sbin/suftees 30002 $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1) $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2) $(uci get wbc.telemetry.uart)"
@@ -169,7 +170,7 @@ uplink_tx_instance() {
 
 uplink_rx_instance() {
 	procd_open_instance
-	procd_set_param command /usr/sbin/rx_rc_telemetry -p $(uci get wbc.uplink.port) -r 99 -b $(uci get wbc.uplink.baud) -o 0 -s $(uci get wbc.uplink.uart) $(uci get wbc.nic.iface)
+	procd_set_param command /usr/sbin/rx_rc_telemetry -p $(uci get wbc.uplink.port) -r $(uci get wbc.uplink.rproto) -b $(uci get wbc.uplink.baud) -o 0 -s $(uci get wbc.uplink.uart) $(uci get wbc.nic.iface)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
@@ -238,16 +239,16 @@ start_uplink() {
 
 }
 
-init_fifo() {
-	echo "FIFO Init ..."
-	mkdir -p /tmp/wbc/fifo
-}
+# init_fifo() {
+	# echo "FIFO Init ..."
+	# mkdir -p /tmp/wbc/fifo
+# }
 
 start_service() {
 	if [ $(uci get wbc.wbc.enable) -eq 0 ]; then 
 		exit
 	fi
-	init_fifo
+#	init_fifo
 	init
 	start_video
 	start_telemetry
@@ -255,6 +256,10 @@ start_service() {
 	start_rssi
 	echo `date '+%s'` >/var/run/wbc/restart_timestamp
 	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum
+}
+
+service_triggers() {
+        procd_add_reload_trigger "wbc"
 }
 
 # Note:

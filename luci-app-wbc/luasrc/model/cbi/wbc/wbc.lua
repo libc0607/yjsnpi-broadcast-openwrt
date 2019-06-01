@@ -57,7 +57,7 @@ for k,v in ipairs(freq_list) do
 end
 o_nic_freq.default = 2437
 -- wbc.nic.chanbw: Channel Bandwidth
-o_nic_chanbw = s_nic:option(ListValue, "chanbw", translate("Channel Bandwidth"))
+o_nic_chanbw = s_nic:option(ListValue, "chanbw", translate("Channel Bandwidth"), translate("Note: ath9k only"))
 o_nic_chanbw.rmempty = false
 o_nic_chanbw:value(5,  "5 MHz")
 o_nic_chanbw:value(10, "10 MHz")
@@ -192,20 +192,20 @@ o_video_savepath.default = '/mnt/sda1/wbc_video'
 o_video_savepath.placeholder = '/mnt/sda1/wbc_video'
 o_video_savepath:depends("save_enable", 1)
 -- wbc.video.encrypt_enable: Video Encrypt Enable
-o_video_encrypt_enable = s_video:option(Flag, "save_enable", translate("Enable Video Encrypt"), translate("Attention: Higher CPU Cost"))
-o_video_save_enable.rmempty = false
+o_video_encrypt_enable = s_video:option(Flag, "encrypt_enable", translate("Enable Video Encrypt"), translate("Attention: Higher CPU Cost"))
+o_video_encrypt_enable.rmempty = false
 -- wbc.video.encrypt_method: Video Encrypt Method
 o_video_encrypt_method = s_video:option(Value, "encrypt_method", translate("Encrypt Method"), translate("Need OpenSSL installed"))
 o_video_encrypt_method.rmempty = false
 o_video_encrypt_method:value("aes-128-cfb")
 o_video_encrypt_method:value("blowfish")
 o_video_encrypt_method.default = "blowfish"
-o_video_encrypt_method:depends("save_enable", 1)
+o_video_encrypt_method:depends("encrypt_enable", 1)
 -- wbc.video.password: Encrypt Password
 o_video_encrypt_password = s_video:option(Value, "encrypt_password", translate("Password"))
 o_video_encrypt_password.rmempty = false
 o_video_encrypt_password.password = true
-o_video_encrypt_password:depends("enable", 1)
+o_video_encrypt_password:depends("encrypt_enable", 1)
 
 
 -- wbc.rssi: RSSI settings
@@ -345,13 +345,12 @@ o_uplink_bitrate:value(24, "24 Mbps")
 o_uplink_bitrate:value(36, "36 Mbps")
 o_uplink_bitrate.default = 6
 o_uplink_bitrate:depends("mode", "tx")
--- wbc.uplink.uart: Uplink UART Interface (Ground)
+-- wbc.uplink.uart: Uplink UART Interface
 o_uplink_uart = s_uplink:option(ListValue, "uart", translate("Uplink UART Interface"))
 for k,v in ipairs(tty_list) do 
 	o_uplink_uart:value(v) 
 end
 o_uplink_uart.default = "/dev/ttyUSB0"
-o_uplink_uart:depends("mode", "rx")
 -- wbc.uplink.baud: Uplink UART Baud rate
 o_uplink_baud = s_uplink:option(ListValue, "baud", translate("Uplink UART Baud Rate"))
 o_uplink_baud:value(9600, "9600 bps")
@@ -368,12 +367,16 @@ o_uplink_proto:value(0, translate("Mavlink"))
 o_uplink_proto:value(1, translate("Generic"))
 o_uplink_proto.default = 0
 o_uplink_proto:depends("mode", "tx")
--- wbc.uplink.listen_port: Listen on port
-o_uplink_listen_port = s_uplink:option(Value, "listen_port", translate("Listen On Local Port"))
-o_uplink_listen_port.datatype = "portrange(1024,65535)"
-o_uplink_listen_port.placeholder = 35002
-o_uplink_listen_port.default = 35002
-o_uplink_listen_port:depends("mode", "tx")
+-- wbc.uplink.rproto: Uplink RX Protocol
+o_uplink_rproto = s_uplink:option(ListValue, "rproto", translate("Uplink RX Protocol"))
+o_uplink_rproto:value(0, translate("MSP"))
+o_uplink_rproto:value(1, translate("Mavlink"))
+o_uplink_rproto:value(2, translate("SUMD"))
+o_uplink_rproto:value(3, translate("IBUS"))
+o_uplink_rproto:value(4, translate("SRXL/XBUS"))
+o_uplink_rproto:value(99, translate("disable R/C"))
+o_uplink_rproto.default = 0
+o_uplink_rproto:depends("mode", "rx")
 
 
 return m
