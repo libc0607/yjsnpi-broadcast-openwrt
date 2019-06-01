@@ -5,12 +5,17 @@ STOP=15
 
 USE_PROCD=1
 
-EXTRA_COMMANDS="measure"
+EXTRA_COMMANDS="measure ubus_mon"
 EXTRA_HELP=<<EOF
 	measure	Test tx_measure with current settings.
+	ubus_mon Get ubus info.
 EOF
 
 STTY_ARGS="-icrnl -ocrnl -imaxbel -opost -isig -icanon -echo -echoe -ixoff -ixon"
+
+ubus_mon() {
+	ubus call service list '{"name":"ezwifibroadcast"}'
+}
 
 measure() {
 	init_nic >/dev/null 
@@ -76,7 +81,7 @@ init() {
 }
 
 video_tx_instance() {
-	procd_open_instance
+	procd_open_instance "video_tx"
 	#if [ $(uci get wbc.video.encrypt_enable) -eq 1 ]; then
 	procd_set_param command socat -u UDP-LISTEN:$(uci get wbc.video.listen_port) EXEC:"/usr/sbin/tx_rawsock -p $(uci get wbc.video.port) -b $(uci get wbc.video.datanum) -r $(uci get wbc.video.fecnum) -f $(uci get wbc.video.packetsize) -t $(uci get wbc.video.frametype) -d $(uci get wbc.video.bitrate) -y 0 $(uci get wbc.nic.iface)"
 	procd_set_param stdout 1
@@ -87,8 +92,8 @@ video_tx_instance() {
 }
 
 video_rx_instance() {
-	mkdir -p $(uci get wbc.video.savepath)
-	procd_open_instance
+	mkdir -p $(uci get wbc.video.savepath 2>/dev/null) 2>/dev/null
+	procd_open_instance "video_rx"
 	procd_set_param command socat -u EXEC:"/usr/sbin/rx -p $(uci get wbc.video.port) -b $(uci get wbc.video.datanum) -r $(uci get wbc.video.fecnum) -f $(uci get wbc.video.packetsize) -d $(uci get wbc.video.rxbuf) $(uci get wbc.nic.iface)"
 	if [ $(uci get wbc.video.save_enable 2>/dev/null) -eq 1 ]  2>/dev/null ; then	# Magic!
 		procd_append_param command EXEC:"/usr/sbin/suftees 30000 $(uci get wbc.video.send_ip_port|cut -d ':' -f 1) $(uci get wbc.video.send_ip_port|cut -d ':' -f 2) $(uci get wbc.video.savepath)/video-$(date +%Y%m%d).raw" 
@@ -103,7 +108,7 @@ video_rx_instance() {
 }
 
 rssi_tx_instance() {
-	procd_open_instance
+	procd_open_instance "rssi_tx"
 	procd_set_param command /usr/sbin/rssitx $(uci get wbc.nic.iface)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -113,7 +118,7 @@ rssi_tx_instance() {
 }
 
 rssi_rx_instance() {
-	procd_open_instance
+	procd_open_instance "rssi_rx"
 	procd_set_param command /usr/sbin/rssirx $(uci get wbc.nic.iface)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -121,7 +126,7 @@ rssi_rx_instance() {
 	procd_set_param pidfile /var/run/wbc/rssirx.pid
 	procd_close_instance
 	
-	procd_open_instance
+	procd_open_instance "rssi_forward"
 	procd_set_param command /usr/sbin/rssi_forward $(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1) $(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2) 30001
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -132,7 +137,7 @@ rssi_rx_instance() {
 
 telemetry_tx_instance() {
 	stty -F $(uci get wbc.telemetry.uart) $STTY_ARGS $(uci get wbc.telemetry.baud) 
-	procd_open_instance
+	procd_open_instance "telemetry_tx"
 	procd_set_param command socat -u $(uci get wbc.telemetry.uart),b$(uci get wbc.telemetry.baud),raw EXEC:"/usr/sbin/tx_telemetry -p $(uci get wbc.telemetry.port) -c $(uci get wbc.telemetry.cts) -r $(uci get wbc.telemetry.retrans) -x $(uci get wbc.telemetry.proto) -d $(uci get wbc.telemetry.bitrate) -y 0 $(uci get wbc.nic.iface)"
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -143,7 +148,7 @@ telemetry_tx_instance() {
 
 telemetry_rx_instance() {
 	stty -F $(uci get wbc.telemetry.uart) $STTY_ARGS $(uci get wbc.telemetry.baud) 
-	procd_open_instance
+	procd_open_instance "telemetry_rx"
 	procd_set_param command socat -u EXEC:"/usr/sbin/rx_rc_telemetry_buf -p $(uci get wbc.telemetry.port) -b 19200 -s /dev/null -o 1 -r 0 $(uci get wbc.nic.iface)" 
 	if [ $(uci get wbc.telemetry.save_enable 2>/dev/null) -eq 1 ] 2>/dev/null; then
 		procd_append_param command EXEC:"/usr/sbin/suftees 30002 $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1) $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2) $(uci get wbc.telemetry.savepath)/telemetry-$(date +%Y%m%d).raw $(uci get wbc.telemetry.uart)"
@@ -158,7 +163,7 @@ telemetry_rx_instance() {
 }
 
 uplink_tx_instance() {
-	procd_open_instance
+	procd_open_instance "uplink_tx"
 	procd_set_param command socat -u $(uci get wbc.uplink.uart),b$(uci get wbc.uplink.baud),raw
 	procd_append_param command EXEC:"/usr/sbin/tx_telemetry -p $(uci get wbc.uplink.port) -c $(uci get wbc.uplink.cts) -r $(uci get wbc.uplink.retrans) -x $(uci get wbc.uplink.proto) -d $(uci get wbc.uplink.bitrate) -y 0 $(uci get wbc.nic.iface)"
 	procd_set_param stdout 1
@@ -169,7 +174,7 @@ uplink_tx_instance() {
 }
 
 uplink_rx_instance() {
-	procd_open_instance
+	procd_open_instance "uplink_rx"
 	procd_set_param command /usr/sbin/rx_rc_telemetry -p $(uci get wbc.uplink.port) -r $(uci get wbc.uplink.rproto) -b $(uci get wbc.uplink.baud) -o 0 -s $(uci get wbc.uplink.uart) $(uci get wbc.nic.iface)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -252,7 +257,7 @@ start_service() {
 	init
 	start_video
 	start_telemetry
-	start_uplink
+#	start_uplink
 	start_rssi
 	echo `date '+%s'` >/var/run/wbc/restart_timestamp
 	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum

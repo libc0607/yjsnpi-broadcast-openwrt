@@ -191,6 +191,7 @@ o_video_savepath = s_video:option(Value, "savepath", translate("Save Raw Video T
 o_video_savepath.default = '/mnt/sda1/wbc_video'
 o_video_savepath.placeholder = '/mnt/sda1/wbc_video'
 o_video_savepath:depends("save_enable", 1)
+--[[
 -- wbc.video.encrypt_enable: Video Encrypt Enable
 o_video_encrypt_enable = s_video:option(Flag, "encrypt_enable", translate("Enable Video Encrypt"), translate("Attention: Higher CPU Cost"))
 o_video_encrypt_enable.rmempty = false
@@ -206,7 +207,7 @@ o_video_encrypt_password = s_video:option(Value, "encrypt_password", translate("
 o_video_encrypt_password.rmempty = false
 o_video_encrypt_password.password = true
 o_video_encrypt_password:depends("encrypt_enable", 1)
-
+]]
 
 -- wbc.rssi: RSSI settings
 s_rssi = m:section(TypedSection, "rssi", translate("RSSI Settings"))
@@ -304,7 +305,7 @@ o_telemetry_savepath.default = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath.placeholder = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath:depends("save_enable", 1)
 
-
+--[[
 -- wbc.uplink: Uplink settings
 s_uplink = m:section(TypedSection, "uplink", translate("Uplink Settings"))
 s_uplink.anonymous = true
@@ -377,6 +378,6 @@ o_uplink_rproto:value(4, translate("SRXL/XBUS"))
 o_uplink_rproto:value(99, translate("disable R/C"))
 o_uplink_rproto.default = 0
 o_uplink_rproto:depends("mode", "rx")
-
+]]
 
 return m

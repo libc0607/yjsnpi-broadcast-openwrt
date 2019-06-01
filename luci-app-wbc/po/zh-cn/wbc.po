@@ -220,8 +220,8 @@ msgstr "保存视频"
 msgid "Enable Video Encrypt"
 msgstr "启用视频加密"
 
-msgid "Attention: Higher CPU Cost"
-msgstr "吃U注意"
+msgid "Attention: Higher CPU Cost and not finished"
+msgstr "吃U注意 并且还没写完所以你选上也不能用233"
 
 msgid "Need OpenSSL installed"
 msgstr "需要安装 OpenSSL"
