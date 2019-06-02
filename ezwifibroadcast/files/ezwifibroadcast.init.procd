@@ -61,7 +61,7 @@ init() {
 		echo "YJSNPI-Broadcast: TX measure..."
 		echo $(measure) > /tmp/bitrate_measured_kbit
 		echo "    TX measure finished, $(cat /tmp/bitrate_measured_kbit)"
-		if ["$(uci get wbc.video.bitrate_mode)" = "auto"]; then
+		if [ "$(uci get wbc.video.bitrate_mode)" = "auto" ]; then
 			echo `expr $(cat /tmp/bitrate_measured_kbit) \* $(uci get wbc.video.bitrate_percent) / 102400` > /tmp/bitrate_kbit
 		else
 			echo $(uci get wbc.video.bitrate_manual) > /tmp/bitrate_kbit
@@ -110,7 +110,7 @@ video_rx_instance() {
 rssi_tx_instance() {
 	procd_open_instance "rssi_tx"
 	procd_set_param command /usr/sbin/rssitx $(uci get wbc.nic.iface)
-	procd_set_param stdout 1
+#	procd_set_param stdout 1 	# so tm noisy
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
 	procd_set_param pidfile /var/run/wbc/rssitx.pid
