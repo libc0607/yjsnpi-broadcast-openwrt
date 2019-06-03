@@ -36,11 +36,5 @@ set wbc.telemetry.cts=0
 set wbc.telemetry.retrans=2
 set wbc.telemetry.proto=1
 set wbc.telemetry.bitrate=6
-set wbc.uplink=uplink
-set wbc.uplink.enable=0
-set wbc.uplink.mode=rx
-set wbc.uplink.port=3
-set wbc.uplink.baud=57600
-set wbc.uplink.uart=/dev/ttyUSB1
 commit wbc
 EOF
