@@ -380,4 +380,10 @@ o_uplink_rproto.default = 0
 o_uplink_rproto:depends("mode", "rx")
 ]]
 
+local apply = luci.http.formvalue("cbi.apply")
+if apply then
+    io.popen("/etc/init.d/ezwifibroadcast stop")
+	io.popen("/etc/init.d/ezwifibroadcast start")
+end
+
 return m
