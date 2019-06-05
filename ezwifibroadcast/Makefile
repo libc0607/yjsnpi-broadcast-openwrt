@@ -55,16 +55,17 @@ define Package/ezwifibroadcast/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssirx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_write_shmem $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward_stdout $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_status $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_write_shmem $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward_stdout $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_status $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/check_alive $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry_buf $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_tx $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ftees $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/suftees $(1)/usr/sbin/
+	$(INSTALL_DIR) $(1)/etc/modules.d
+	$(INSTALL_BIN) ./files/ath9k_hw.modprobe.options /etc/modules.d
 	$(INSTALL_DIR) $(1)/etc/init.d
 ifdef CONFIG_PACKAGE_EZWIFIBROADCAST_PROCD
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init.procd $(1)/etc/init.d/ezwifibroadcast
