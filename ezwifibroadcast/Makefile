@@ -64,8 +64,8 @@ define Package/ezwifibroadcast/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_tx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/suftees $(1)/usr/sbin/
-	$(INSTALL_DIR) $(1)/etc/modules.d
-	$(INSTALL_BIN) ./files/ath9k_hw.modprobe.options /etc/modules.d
+	$(INSTALL_DIR) $(1)/etc/modules.d/
+	$(INSTALL_BIN) ./files/ath9k_hw.modprobe.options $(1)/etc/modules.d/
 	$(INSTALL_DIR) $(1)/etc/init.d
 ifdef CONFIG_PACKAGE_EZWIFIBROADCAST_PROCD
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init.procd $(1)/etc/init.d/ezwifibroadcast
