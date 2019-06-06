@@ -63,6 +63,10 @@ o_nic_chanbw:value(5,  "5 MHz")
 o_nic_chanbw:value(10, "10 MHz")
 o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
+--wbc.nic.ath9k_hwparams: ath9k_hw Kernel module parameters
+o_nic_ath9k_hwparams = s_nic:option(Value, "ath9k_hwparams", translate("ath9k_hw Module Parameters"), translate("Note: only support ath9k 还没写完不能用"))
+o_nic_ath9k_hwparams.rmempty = false
+o_nic_ath9k_hwparams.default = ""
 
 
 -- wbc.video: Video transfer settings
