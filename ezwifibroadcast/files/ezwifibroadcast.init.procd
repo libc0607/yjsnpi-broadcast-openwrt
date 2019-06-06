@@ -78,6 +78,9 @@ init() {
 	
 	/usr/sbin/sharedmem_init_tx
 	/usr/sbin/sharedmem_init_rx
+	
+	ATH9K_HW_PARAMS=$(uci get wbc.nic.ath9k_hwparams)
+	echo $ATH9K_HW_PARAMS > /etc/modules.d/ath9k_hw
 }
 
 video_tx_instance() {
