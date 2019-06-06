@@ -209,7 +209,7 @@ function get_initconfig()
 	j.imgsize = no_n(sys.exec("uci get wbc.video.imgsize"))
 	j.bitrate = no_n(sys.exec("uci get wbc.video.bitrate_mode") == "auto\n" and sys.exec("cat /tmp/bitrate_kbit") or sys.exec("uci get wbc.video.bitrate_manual")) *1024
 	j.keyframerate = no_n(sys.exec("uci get wbc.video.keyframerate"))
-	j.videoport = no_n(sys.exec("uci get wbc.video.mode") == "tx\n" and sys.exec("uci get wbc.video.listen_port") or sys.exec("uci get wbc.video.send_ip_port|cut -d ':' -f 2"))
+	j.videoport = (sys.exec("uci get wbc.video.enable") == "1\n") and no_n(sys.exec("uci get wbc.video.mode") == "tx\n" and sys.exec("uci get wbc.video.listen_port") or sys.exec("uci get wbc.video.send_ip_port|cut -d ':' -f 2")) or "null"
 	j.teleport = no_n(sys.exec("uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2"))
 	j.rssiport = no_n(sys.exec("uci get wbc.rssi.send_ip_port|cut -d ':' -f 2"))
 	j.extraparams = no_n(sys.exec("uci get wbc.video.extraparams"))
