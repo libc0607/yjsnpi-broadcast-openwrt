@@ -89,7 +89,7 @@ video_tx_instance() {
 	procd_set_param command socat -u UDP-LISTEN:$(uci get wbc.video.listen_port) EXEC:"/usr/sbin/tx_rawsock -p 0 -b $(uci get wbc.video.datanum) -r $(uci get wbc.video.fecnum) -f $(uci get wbc.video.packetsize) -t $(uci get wbc.video.frametype) -d $(uci get wbc.video.bitrate) -y 0 $(uci get wbc.nic.iface)"
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/videotx.pid
 	procd_close_instance
 }
@@ -105,7 +105,7 @@ video_rx_instance() {
 	fi
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100} 
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000} 
 	procd_set_param pidfile /var/run/wbc/videorx.pid 
 	procd_close_instance
 }
@@ -115,7 +115,7 @@ rssi_tx_instance() {
 	procd_set_param command /usr/sbin/rssitx $(uci get wbc.nic.iface)
 #	procd_set_param stdout 1 	# so tm noisy
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/rssitx.pid
 	procd_close_instance
 }
@@ -125,7 +125,7 @@ rssi_rx_instance() {
 	procd_set_param command /usr/sbin/rssirx $(uci get wbc.nic.iface)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/rssirx.pid
 	procd_close_instance
 	
@@ -133,7 +133,7 @@ rssi_rx_instance() {
 	procd_set_param command /usr/sbin/rssi_forward $(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1) $(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2) 30001
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/rssi_forward.pid
 	procd_close_instance
 }
@@ -144,7 +144,7 @@ telemetry_tx_instance() {
 	procd_set_param command socat -u $(uci get wbc.telemetry.uart),b$(uci get wbc.telemetry.baud),raw EXEC:"/usr/sbin/tx_telemetry -p 1 -c $(uci get wbc.telemetry.cts) -r $(uci get wbc.telemetry.retrans) -x $(uci get wbc.telemetry.proto) -d $(uci get wbc.telemetry.bitrate) -y 0 $(uci get wbc.nic.iface)"
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/telemetry_tx.pid
 	procd_close_instance
 }
@@ -160,7 +160,7 @@ telemetry_rx_instance() {
 	fi
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/telemetry_rx.pid
 	procd_close_instance
 }
@@ -171,7 +171,7 @@ uplink_tx_instance() {
 	procd_append_param command EXEC:"/usr/sbin/tx_telemetry -p 1 -c $(uci get wbc.uplink.cts) -r $(uci get wbc.uplink.retrans) -x $(uci get wbc.uplink.proto) -d $(uci get wbc.uplink.bitrate) -y 0 $(uci get wbc.nic.iface)"
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/uplinktx.pid
 	procd_close_instance
 }
@@ -181,7 +181,7 @@ uplink_rx_instance() {
 	procd_set_param command /usr/sbin/rx_rc_telemetry -p $(uci get wbc.uplink.port) -r $(uci get wbc.uplink.rproto) -b $(uci get wbc.uplink.baud) -o 0 -s $(uci get wbc.uplink.uart) $(uci get wbc.nic.iface)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
-	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-100}
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/uplinkrx.pid
 	procd_close_instance
 }
