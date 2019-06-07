@@ -17,6 +17,10 @@ ubus_mon() {
 	ubus call service list '{"name":"ezwifibroadcast"}'
 }
 
+rssi_mon() {
+	/usr/sbin/rx_status /wifibroadcast_rx_status_0 0
+}
+
 measure() {
 	init_nic >/dev/null 
 	TEST_RESULT=1000000	# default
