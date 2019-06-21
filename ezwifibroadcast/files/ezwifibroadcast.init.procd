@@ -6,6 +6,9 @@ STOP=15
 USE_PROCD=1
 
 WBC_INI_FILE=/var/run/wbc/config.ini
+RX_UDP_BIND_PORT=30002
+RX_RSSI_UDP_BIND_PORT=30003
+RX_TELE_UDP_BIND_PORT=30004
 
 EXTRA_COMMANDS="measure ubus_mon"
 EXTRA_HELP=<<EOF
@@ -51,8 +54,89 @@ init_nic() {
 		echo "    Init_NIC: $NIC on 5MHz/10MHz bandwidth is not supported. Use default instead."
 	fi
 }
+gen_ini() {
+	# clean
+	rm $WBC_INI_FILE
+	touch $WBC_INI_FILE
+	
+	# 1. tx_rawsock/tx_measure 
+	if [ "$(uci get wbc.video.mode)" = "tx" ]; then
+		cat >> $WBC_INI_FILE <<EOF
+[tx]
+port=0
+datanum=$(uci get wbc.video.datanum)
+fecnum=$(uci get wbc.video.fecnum)
+packetsize=$(uci get wbc.video.packetsize)
+frametype=$(uci get wbc.video.frametype)
+rate=$(uci get wbc.video.bitrate)
+mode=0
+nic=$(uci get wbc.nic.iface)
+udp_port=$(uci get wbc.video.listen_port)
+udp_bufsize=262144
+EOF
+	fi
+	# 2. rx #wip
+	if [ "$(uci get wbc.video.mode)" = "rx" ]; then
+	cat >> $WBC_INI_FILE <<EOF
+[rx]
+port=0
+datanum=$(uci get wbc.video.datanum)
+fecnum=$(uci get wbc.video.fecnum)
+packetsize=$(uci get wbc.video.packetsize)
+bufsize=$(uci get wbc.video.rxbuf)
+nic=$(uci get wbc.nic.iface)
+udp_ip=$(uci get wbc.video.send_ip_port|cut -d ':' -f 1)
+udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
+udp_bind_port=$RX_UDP_BIND_PORT
+recording=$(uci get wbc.video.save_enable 2>/dev/null)	
+recording_dir=$(uci get wbc.video.savepath)
+EOF
+	fi
+
+	if [ $(uci get wbc.rssi.enable) -eq 1 ]; then
+		if [ "$(uci get wbc.rssi.mode)" = "rx" ]; then
+			cat >> $WBC_INI_FILE <<EOF
+[rssirx]
+udp_ip=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1)
+udp_port=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2)
+udp_bind_port=$RX_RSSI_UDP_BIND_PORT
+EOF
+		fi
+	fi
+	
+	
+	if [ $(uci get wbc.telemetry.enable) -eq 1 ]; then
+		echo "YJSNPI-Broadcast: Telemetry Enabled."
+		if [ "$(uci get wbc.telemetry.mode)" = "rx" ]; then
+			cat >> $WBC_INI_FILE <<EOF
+[rx_telemetry]
+port=1
+nic=$(uci get wbc.nic.iface)
+udp_ip=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1)
+udp_port=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2)
+udp_bind_port=$RX_TELE_UDP_BIND_PORT
+recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
+recording_dir=$(uci get wbc.telemetry.savepath)
+EOF
+		fi
+		if [ "$(uci get wbc.telemetry.mode)" = "tx" ]; then 
+			cat >> $WBC_INI_FILE <<EOF
+[tx_telemetry]
+cts_protection=$(uci get wbc.telemetry.cts)
+port=1
+retrans_count=$(uci get wbc.telemetry.retrans)
+tele_protocol=$(uci get wbc.telemetry.proto)
+rate=$(uci get wbc.telemetry.bitrate)
+mode=0
+nic=$(uci get wbc.nic.iface)
+EOF
+		fi
+	fi
+}
 
 init() {
+	# -1. Generate ini file
+	gen_ini
 	# 0. Init Wi-Fi card here
 	echo "YJSNPI-Broadcast: Init Wi-Fi Card..."
 	init_nic
