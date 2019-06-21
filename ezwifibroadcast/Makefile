@@ -6,7 +6,7 @@ PKG_RELEASE:=1.6R6
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=https://github.com/libc0607/YJSNPI-Broadcast.git
 PKG_SOURCE_DATE:=2019-06-21
-PKG_SOURCE_VERSION:=765a0e48c8779bc41458997b02e51c177ad46cd2
+PKG_SOURCE_VERSION:=7f0b337ee4ba4afdd54c6f0b95267e59de663c92
 
 PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -17,11 +17,11 @@ define Package/ezwifibroadcast
   SECTION:=net
   CATEGORY:=Network
   TITLE:=ezwifibroadcast
-  DEPENDS:=+librt +libpcap +coreutils +coreutils-stty +kmod-usb-net \
+  DEPENDS:=+librt +libpcap +coreutils +kmod-usb-net \
   +kmod-usb-net-rndis +kmod-usb2 +kmod-usb-ohci +kmod-usb-storage-extras \
   +kmod-usb-serial +kmod-usb-serial-ch341 +socat +usbutils +kmod-fs-ext4 \
   +kmod-fs-vfat +kmod-fs-autofs4 +kmod-nls-cp437 +kmod-nls-utf8\
-  +kmod-nls-iso8859-1 +ntfs-3g +block-mount +mount-utils +luci-app-samba
+  +kmod-nls-iso8859-1 +ntfs-3g +block-mount +mount-utils +libiniparser
 endef
 
 define Package/ezwifibroadcast/config
