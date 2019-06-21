@@ -34,18 +34,6 @@ define Build/Configure
 endef
 
 define Build/InstallDev
-	echo "===================================="
-	echo "===================================="
-	echo "===================================="
-	echo "===================================="
-	echo "===================================="
-	echo
-	echo $(1)
-	echo 
-	echo $(2)
-	echo
-	echo "===================================="
-	echo 
 	$(INSTALL_DIR) $(1)/usr/include
 	$(CP) $(PKG_BUILD_DIR)/*.h $(1)/usr/include/
 	$(INSTALL_DIR) $(1)/usr/lib
