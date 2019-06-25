@@ -56,6 +56,7 @@ init_nic() {
 }
 gen_ini() {
 	# clean
+	mkdir -p /var/run/wbc
 	rm $WBC_INI_FILE >/dev/null 2>&1
 	touch $WBC_INI_FILE >/dev/null 2>&1
 	
@@ -102,7 +103,7 @@ udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
 
 udp_bind_port=$RX_UDP_BIND_PORT
 recording=$(uci get wbc.video.save_enable 2>/dev/null)	
-recording_dir=$(uci get wbc.video.savepath)
+recording_dir=$(uci get wbc.video.savepath 2>/dev/null)
 
 [video]
 mode=rx	
@@ -151,7 +152,7 @@ udp_ip=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1)
 udp_port=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2)
 udp_bind_port=$RX_TELE_UDP_BIND_PORT
 recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
-recording_dir=$(uci get wbc.telemetry.savepath)
+recording_dir=$(uci get wbc.telemetry.savepath 2>/dev/null)
 
 EOF
 			echo "" >> $WBC_INI_FILE
@@ -178,8 +179,8 @@ init() {
 	gen_ini
 
 	# -0.5. and osd ini
-	if [ $(wbc.telemetry.osd_ini_enable) -eq 1 ]; then
-		rm /www/wbc-osdconfig.ini
+	if [ $(uci get wbc.telemetry.osd_ini_enable 2>/dev/null) -eq 1 ] >/dev/null 2>&1 ; then
+		rm /www/wbc-osdconfig.ini >/dev/null 2>&1
 		ln -s /etc/wbc/osdconfig.ini /www/wbc-osdconfig.ini
 	fi
 	
