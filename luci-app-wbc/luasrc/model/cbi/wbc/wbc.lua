@@ -320,12 +320,13 @@ o_telemetry_savepath = s_telemetry:option(Value, "telemetry", translate("Save Te
 o_telemetry_savepath.default = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath.placeholder = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath:depends("save_enable", 1)
+--[[
 -- wbc.telemetry.osd_ini_enable: 
 --	Use osd .ini in openwrt instead of the one in /boot/ in rpi 
 o_telemetry_osd_ini_enable = s_telemetry:option(Flag, "osd_ini_enable", translate("RPi get osd config from OpenWrt"), translate("Or will use /boot/osdconfig.ini"))
 o_telemetry_osd_ini_enable.rmempty = false
 o_telemetry_osd_ini_enable:depends("mode", "rx")
-
+]]--
 
 --[[
 -- wbc.uplink: Uplink settings
