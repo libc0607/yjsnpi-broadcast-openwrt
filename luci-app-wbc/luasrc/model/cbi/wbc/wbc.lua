@@ -119,14 +119,6 @@ o_video_packetsize = s_video:option(Value, "packetsize", translate("Bytes per pa
 o_video_packetsize.default = 1024
 o_video_packetsize.placeholder = 1024
 o_video_packetsize.datatype = "range(32,1450)"
---[[
--- wbc.video.port: Port on Air
--- 由于其他程序的共享内存里写死了这个端口所以注释掉了
-o_video_port = s_video:option(Value, "port", translate("Port on Air"))
-o_video_port.default = 0
-o_video_port.placeholder = 0
-o_video_port.datatype = "range(0,127)"
-]]
 -- wbc.video.frametype: Frame Type
 o_video_frametype = s_video:option(ListValue, "frametype", translate("Wireless Frame Type"))
 o_video_frametype:value(0, "DATA Short")

@@ -59,6 +59,11 @@ gen_ini() {
 	rm $WBC_INI_FILE >/dev/null 2>&1
 	touch $WBC_INI_FILE >/dev/null 2>&1
 	
+	cat >> $WBC_INI_FILE <<EOF
+# wbc config file. Auto generated. Do not edit. 
+
+EOF
+
 	# 1. tx_rawsock/tx_measure 
 	if [ "$(uci get wbc.video.mode)" = "tx" ]; then
 		cat >> $WBC_INI_FILE <<EOF
@@ -71,8 +76,14 @@ frametype=$(uci get wbc.video.frametype)
 rate=$(uci get wbc.video.bitrate)
 mode=0
 nic=$(uci get wbc.nic.iface)
-udp_port=$(uci get wbc.video.listen_port)
+udp_port=$(uci get wbc.video.listen_port) 
 udp_bufsize=262144
+video_forward_port=$(uci get wbc.video.listen_port)
+video_fps=$(uci get wbc.video.fps)
+video_size=$(uci get wbc.video.imgsize)
+video_bitrate=1024000
+video_keyframerate=$(uci get wbc.video.keyframerate)
+
 EOF
 		echo "" >> $WBC_INI_FILE
 	fi
@@ -88,11 +99,25 @@ bufsize=$(uci get wbc.video.rxbuf)
 nic=$(uci get wbc.nic.iface)
 udp_ip=$(uci get wbc.video.send_ip_port|cut -d ':' -f 1)
 udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
-alive_udp_ip=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 1)
-alive_udp_port=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 2)
+
 udp_bind_port=$RX_UDP_BIND_PORT
 recording=$(uci get wbc.video.save_enable 2>/dev/null)	
 recording_dir=$(uci get wbc.video.savepath)
+
+[video]
+mode=rx	
+udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
+udp_bufsize=524288
+
+[alive]	
+udp_ip=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 1)
+udp_port=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 2)
+udp_bind_port=35010
+
+[alive_in]	
+udp_port=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 2)
+exec=monit restart wbc-hellovideo
+
 EOF
 		echo "" >> $WBC_INI_FILE
 	fi
@@ -104,6 +129,11 @@ EOF
 udp_ip=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1)
 udp_port=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2)
 udp_bind_port=$RX_RSSI_UDP_BIND_PORT
+
+[rssi_in]
+mode=rx
+udp_port=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2)
+
 EOF
 			echo "" >> $WBC_INI_FILE
 		fi
@@ -122,6 +152,7 @@ udp_port=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2)
 udp_bind_port=$RX_TELE_UDP_BIND_PORT
 recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
 recording_dir=$(uci get wbc.telemetry.savepath)
+
 EOF
 			echo "" >> $WBC_INI_FILE
 		fi
@@ -135,6 +166,7 @@ tele_protocol=$(uci get wbc.telemetry.proto)
 rate=$(uci get wbc.telemetry.bitrate)
 mode=0
 nic=$(uci get wbc.nic.iface)
+
 EOF
 			echo "" >> $WBC_INI_FILE
 		fi
@@ -144,10 +176,10 @@ EOF
 init() {
 	# -1. Generate ini file and link it to /www
 	gen_ini
-	ln -s $WBC_INI_FILE /www/$(uci get wbc.wbc.confpath)
 
 	# -0.5. and osd ini
 	if [ $(wbc.telemetry.osd_ini_enable) -eq 1 ]; then
+		rm /www/wbc-osdconfig.ini
 		ln -s /etc/wbc/osdconfig.ini /www/wbc-osdconfig.ini
 	fi
 	
@@ -163,10 +195,16 @@ init() {
 		else
 			echo $(uci get wbc.video.bitrate_manual) > /tmp/bitrate_kbit
 		fi 
+		BITRATE_BIT=`expr $(cat /tmp/bitrate_kbit) \* 1024`
+		sed -i "s/video_bitrate=1024000/video_bitrate=$BITRATE_BIT/g" $WBC_INI_FILE
 	else
 		echo 1024000 > /tmp/bitrate_measured_kbit
 		echo 1000 > /tmp/bitrate_kbit
 	fi
+
+	rm /www/$(uci get wbc.wbc.confpath)
+	ln -s $WBC_INI_FILE /www/$(uci get wbc.wbc.confpath)
+
 	# To-do: Find out what these things mean and how to bypass
 
 	echo "0" > /tmp/cts
