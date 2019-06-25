@@ -56,8 +56,8 @@ init_nic() {
 }
 gen_ini() {
 	# clean
-	rm $WBC_INI_FILE
-	touch $WBC_INI_FILE
+	rm $WBC_INI_FILE >/dev/null 2>&1
+	touch $WBC_INI_FILE >/dev/null 2>&1
 	
 	# 1. tx_rawsock/tx_measure 
 	if [ "$(uci get wbc.video.mode)" = "tx" ]; then
@@ -74,10 +74,11 @@ nic=$(uci get wbc.nic.iface)
 udp_port=$(uci get wbc.video.listen_port)
 udp_bufsize=262144
 EOF
+		echo "" >> $WBC_INI_FILE
 	fi
 	# 2. rx #wip
 	if [ "$(uci get wbc.video.mode)" = "rx" ]; then
-	cat >> $WBC_INI_FILE <<EOF
+		cat >> $WBC_INI_FILE <<EOF
 [rx]
 port=0
 datanum=$(uci get wbc.video.datanum)
@@ -87,10 +88,13 @@ bufsize=$(uci get wbc.video.rxbuf)
 nic=$(uci get wbc.nic.iface)
 udp_ip=$(uci get wbc.video.send_ip_port|cut -d ':' -f 1)
 udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
+alive_udp_ip=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 1)
+alive_udp_port=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 2)
 udp_bind_port=$RX_UDP_BIND_PORT
 recording=$(uci get wbc.video.save_enable 2>/dev/null)	
 recording_dir=$(uci get wbc.video.savepath)
 EOF
+		echo "" >> $WBC_INI_FILE
 	fi
 
 	if [ $(uci get wbc.rssi.enable) -eq 1 ]; then
@@ -101,6 +105,7 @@ udp_ip=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1)
 udp_port=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2)
 udp_bind_port=$RX_RSSI_UDP_BIND_PORT
 EOF
+			echo "" >> $WBC_INI_FILE
 		fi
 	fi
 	
@@ -118,6 +123,7 @@ udp_bind_port=$RX_TELE_UDP_BIND_PORT
 recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
 recording_dir=$(uci get wbc.telemetry.savepath)
 EOF
+			echo "" >> $WBC_INI_FILE
 		fi
 		if [ "$(uci get wbc.telemetry.mode)" = "tx" ]; then 
 			cat >> $WBC_INI_FILE <<EOF
@@ -130,13 +136,21 @@ rate=$(uci get wbc.telemetry.bitrate)
 mode=0
 nic=$(uci get wbc.nic.iface)
 EOF
+			echo "" >> $WBC_INI_FILE
 		fi
 	fi
 }
 
 init() {
-	# -1. Generate ini file
+	# -1. Generate ini file and link it to /www
 	gen_ini
+	ln -s $WBC_INI_FILE /www/$(uci get wbc.wbc.confpath)
+
+	# -0.5. and osd ini
+	if [ $(wbc.telemetry.osd_ini_enable) -eq 1 ]; then
+		ln -s /etc/wbc/osdconfig.ini /www/wbc-osdconfig.ini
+	fi
+	
 	# 0. Init Wi-Fi card here
 	echo "YJSNPI-Broadcast: Init Wi-Fi Card..."
 	init_nic
@@ -159,9 +173,11 @@ init() {
 	echo "0" > /tmp/undervolt 		# a wireless router should never...
 	mkdir -p /var/run/wbc			# for saving running status
 	
+	# shared memory
 	/usr/sbin/sharedmem_init_tx
 	/usr/sbin/sharedmem_init_rx
 	
+	# ath9k_hw parameters (reboot to apply)
 	ATH9K_HW_PARAMS=$(uci get wbc.nic.ath9k_hwparams)
 	echo $ATH9K_HW_PARAMS > /etc/modules.d/ath9k_hw
 }
@@ -181,17 +197,19 @@ video_tx_instance() {
 video_rx_instance() {
 	mkdir -p $(uci get wbc.video.savepath 2>/dev/null) 2>/dev/null
 	procd_open_instance "video_rx"
-	#procd_set_param command socat -u EXEC:"/usr/sbin/rx -p 0 -b $(uci get wbc.video.datanum) -r $(uci get wbc.video.fecnum) -f $(uci get wbc.video.packetsize) -d $(uci get wbc.video.rxbuf) $(uci get wbc.nic.iface)"
-	#if [ $(uci get wbc.video.save_enable 2>/dev/null) -eq 1 ]  2>/dev/null ; then	# Magic!
-	#	procd_append_param command EXEC:"/usr/sbin/suftees 30000 $(uci get wbc.video.send_ip_port|cut -d ':' -f 1) $(uci get wbc.video.send_ip_port|cut -d ':' -f 2) $(uci get wbc.video.savepath)/video-$(date +%Y%m%d).raw" 
-	#else
-	#	procd_append_param command UDP:$(uci get wbc.video.send_ip_port),sourceport=30000
-	#fi
 	procd_set_param command /usr/sbin/rx $WBC_INI_FILE
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000} 
 	procd_set_param pidfile /var/run/wbc/videorx.pid 
+	procd_close_instance
+
+	procd_open_instance "video_rx_alive"
+	procd_set_param command /usr/sbin/check_alive $WBC_INI_FILE
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000} 
+	procd_set_param pidfile /var/run/wbc/videorxalive.pid 
 	procd_close_instance
 }
 
@@ -215,7 +233,6 @@ rssi_rx_instance() {
 	procd_close_instance
 	
 	procd_open_instance "rssi_forward"
-	#procd_set_param command /usr/sbin/rssi_forward $(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1) $(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2) 30001
 	procd_set_param command /usr/sbin/rssi_forward $WBC_INI_FILE
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -225,7 +242,6 @@ rssi_rx_instance() {
 }
 
 telemetry_tx_instance() {
-	#stty -F $(uci get wbc.telemetry.uart) $STTY_ARGS $(uci get wbc.telemetry.baud) 
 	procd_open_instance "telemetry_tx"
 	procd_set_param command socat -u $(uci get wbc.telemetry.uart),b$(uci get wbc.telemetry.baud),raw 
 	procd_append_param command EXEC:"/usr/sbin/tx_telemetry $WBC_INI_FILE"
@@ -240,38 +256,12 @@ telemetry_rx_instance() {
 	stty -F $(uci get wbc.telemetry.uart) $STTY_ARGS $(uci get wbc.telemetry.baud) 
 	procd_open_instance "telemetry_rx"
 	procd_set_param command /usr/sbin/rx_rc_telemetry_buf $WBC_INI_FILE
-	# if [ $(uci get wbc.telemetry.save_enable 2>/dev/null) -eq 1 ] 2>/dev/null; then
-		# procd_append_param command EXEC:"/usr/sbin/suftees 30002 $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1) $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2) $(uci get wbc.telemetry.savepath)/telemetry-$(date +%Y%m%d).raw $(uci get wbc.telemetry.uart)"
-	# else
-		# procd_append_param command EXEC:"/usr/sbin/suftees 30002 $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1) $(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2) $(uci get wbc.telemetry.uart)"
-	# fi
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
 	procd_set_param pidfile /var/run/wbc/telemetry_rx.pid
 	procd_close_instance
 }
-
-# uplink_tx_instance() {
-	# procd_open_instance "uplink_tx"
-	# procd_set_param command socat -u $(uci get wbc.uplink.uart),b$(uci get wbc.uplink.baud),raw
-	# procd_append_param command EXEC:"/usr/sbin/tx_telemetry -p 1 -c $(uci get wbc.uplink.cts) -r $(uci get wbc.uplink.retrans) -x $(uci get wbc.uplink.proto) -d $(uci get wbc.uplink.bitrate) -y 0 $(uci get wbc.nic.iface)"
-	# procd_set_param stdout 1
-	# procd_set_param stderr 1
-	# procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
-	# procd_set_param pidfile /var/run/wbc/uplinktx.pid
-	# procd_close_instance
-# }
-
-# uplink_rx_instance() {
-	# procd_open_instance "uplink_rx"
-	# procd_set_param command /usr/sbin/rx_rc_telemetry -p $(uci get wbc.uplink.port) -r $(uci get wbc.uplink.rproto) -b $(uci get wbc.uplink.baud) -o 0 -s $(uci get wbc.uplink.uart) $(uci get wbc.nic.iface)
-	# procd_set_param stdout 1
-	# procd_set_param stderr 1
-	# procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
-	# procd_set_param pidfile /var/run/wbc/uplinkrx.pid
-	# procd_close_instance
-# }
 
 start_video() {
 	# 1. Video TX/RX Instance
@@ -317,37 +307,13 @@ start_telemetry() {
 	fi
 }
 
-# start_uplink() {
-#3. Uplink RX Instance
-	# if [ $(uci get wbc.uplink.enable) -eq 1 ]; then
-		# echo "YJSNPI-Broadcast: Uplink Enabled."
-		# if [ "$(uci get wbc.uplink.mode)" = "rx" ]; then
-			# uplink_rx_instance
-			# echo "YJSNPI-Broadcast: Uplink RX Mode, output set to $(uci get wbc.uplink.uart), Starting rx_rc_telemetry..."
-		# fi
-
-		# if [ "$(uci get wbc.uplink.mode)" = "tx" ]; then
-			# uplink_tx_instance
-			# echo "YJSNPI-Broadcast: Uplink TX Mode from $(uci get wbc.uplink.uart), Starting tx_telemetry..."
-		# fi
-	# fi
-
-# }
-
-# init_fifo() {
-	# echo "FIFO Init ..."
-	# mkdir -p /tmp/wbc/fifo
-# }
-
 start_service() {
 	if [ $(uci get wbc.wbc.enable) -eq 0 ]; then 
 		exit
 	fi
-#	init_fifo
 	init
 	start_video
 	start_telemetry
-#	start_uplink
 	start_rssi
 	echo `date '+%s'` >/var/run/wbc/restart_timestamp
 	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum
@@ -357,33 +323,3 @@ service_triggers() {
         procd_add_reload_trigger "wbc"
 }
 
-# Note:
-#		(stdin) -> suftees -> (udp) + (write to file or fifo)s
-#
-# Video rx mode:
-#  (rx -(socat)-> suftees) -------------------------------(udp)------------(socat(Pi)) -> hello_video(Pi)
-#             Storage<-| 
-# Video tx mode:
-# 	raspivid(Pi) -(socat(Pi))-----------------------------(udp)------------(socat)-> tx_rawsock
-#
-# RSSI rx mode:
-#  rssirx -(shared memory)-> rssi_forward ----------------(udp)------------> rssi_forward_in(Pi)
-#
-# RSSI tx mode:
-#  rssitx (no more)
-#
-# Telemetry rx mode:
-#  (rx_rc_telemetry_buf -(socat)-> suftees) ---------------(udp)-----------(socat(Pi))-> /root/telemetryfifo1 (Used by /tmp/osd(Pi))
-#                			Storage<-| 
-#                			   UART<-|				
-#
-# Telemetry tx mode:
-#	UART -(socat)-> tx_telemetry
-#
-# Uplink tx mode:
-#   UART -(socat)-> rctx
-#
-# Uplink rx mode:
-#  rx_rc(->UART)
-#                       
-#

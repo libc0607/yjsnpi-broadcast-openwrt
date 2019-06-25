@@ -38,6 +38,14 @@ s_wbc.addremove = false
 -- wbc.wbc.enable: Enable
 o_wbc_enable = s_wbc:option(Flag, "enable", translate("Enable YJSNPI-Broadcast"))
 o_wbc_enable.rmempty = false
+-- wbc.wbc.confpath: config file on HTTP
+-- Note: 	this file is for raspi; will be link to /www 
+--			e.g. when set to '/wbc-config.ini'
+--			on raspi run 'wget 192.168.1.1/wbc-config.ini'
+o_wbc_confpath = s_wbc:option(Value, "confpath", translate("Config file on HTTP"))
+o_wbc_confpath.default = '/wbc-config.ini'
+o_wbc_confpath:depends("enable", 1)
+
 -- wbc.nic: Wi-Fi settings
 s_nic = m:section(TypedSection, "nic", translate("Wi-Fi Settings"))
 s_nic.anonymous = true
@@ -64,7 +72,7 @@ o_nic_chanbw:value(10, "10 MHz")
 o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
 --wbc.nic.ath9k_hwparams: ath9k_hw Kernel module parameters
-o_nic_ath9k_hwparams = s_nic:option(Value, "ath9k_hwparams", translate("ath9k_hw Module Parameters"), translate("Note: only support ath9k 还没写完不能用"))
+o_nic_ath9k_hwparams = s_nic:option(Value, "ath9k_hwparams", translate("ath9k_hw Module Parameters"), translate("Note: only support ath9k"))
 o_nic_ath9k_hwparams.rmempty = false
 o_nic_ath9k_hwparams.default = ""
 
@@ -92,6 +100,10 @@ o_video_listen_port.default = 35000
 o_video_send_ip_port = s_video:option(Value, "send_ip_port", translate("Send Video Stream to IP:Port"))
 o_video_send_ip_port.datatype = "ipaddrport"
 o_video_send_ip_port:depends("mode", "rx")
+-- wbc.video.alive_send_ip_port: Send check alive msg to IP:Port
+o_video_alive_send_ip_port = s_video:option(Value, "alive_send_ip_port", translate("Send Alive Msg to IP:Port"))
+o_video_alive_send_ip_port.datatype = "ipaddrport"
+o_video_alive_send_ip_port:depends("mode", "rx")
 -- wbc.video.datanum: Data packets in a block
 o_video_datanum = s_video:option(Value, "datanum", translate("Data packets in a block"))
 o_video_datanum.default = 8
@@ -316,6 +328,12 @@ o_telemetry_savepath = s_telemetry:option(Value, "telemetry", translate("Save Te
 o_telemetry_savepath.default = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath.placeholder = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath:depends("save_enable", 1)
+-- wbc.telemetry.osd_ini_enable: 
+--	Use osd .ini in openwrt instead of the one in /boot/ in rpi 
+o_telemetry_osd_ini_enable = s_telemetry:option(Flag, "osd_ini_enable", translate("RPi get osd config from OpenWrt"), translate("Or will use /boot/osdconfig.ini"))
+o_telemetry_osd_ini_enable.rmempty = false
+o_telemetry_osd_ini_enable:depends("mode", "rx")
+
 
 --[[
 -- wbc.uplink: Uplink settings

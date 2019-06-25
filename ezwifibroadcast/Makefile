@@ -72,6 +72,8 @@ ifdef CONFIG_PACKAGE_EZWIFIBROADCAST_PROCD
 else
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init $(1)/etc/init.d/ezwifibroadcast
 endif
+	$(INSTALL_DIR) $(1)/etc/wbc
+	$(INSTALL_BIN) ./files/osdconfig.ini $(1)/etc/wbc
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/ezwifibroadcast.defaults $(1)/etc/uci-defaults
 	$(INSTALL_DIR) $(1)/etc/config
