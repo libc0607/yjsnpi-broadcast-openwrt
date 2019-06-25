@@ -29,16 +29,16 @@ rssi_mon() {
 measure() {
 	init_nic >/dev/null 
 	TEST_RESULT=1000000	# default
-	if [ "$(uci get wbc.video.mode)" = "tx" ]; then
+	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
 		TEST_RESULT=$(/usr/sbin/tx_measure $WBC_INI_FILE)
 	fi
 	echo $TEST_RESULT
 }
 
 init_nic() {
-	NIC=$(uci get wbc.nic.iface)
-	FREQ=$(uci get wbc.nic.freq)
-	CHANBW=$(uci get wbc.nic.chanbw)
+	NIC=$(uci get wbc.nic.iface 2>/dev/null)
+	FREQ=$(uci get wbc.nic.freq 2>/dev/null)
+	CHANBW=$(uci get wbc.nic.chanbw 2>/dev/null)
 	PHY_NAME=$(iwinfo $NIC info|grep "PHY name"|cut -d ':' -f 3)
 	iw reg set CN					
 	ifconfig $NIC mtu 2304
@@ -66,40 +66,40 @@ gen_ini() {
 EOF
 
 	# 1. tx_rawsock/tx_measure 
-	if [ "$(uci get wbc.video.mode)" = "tx" ]; then
+	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
 		cat >> $WBC_INI_FILE <<EOF
 [tx]
 port=0
-datanum=$(uci get wbc.video.datanum)
-fecnum=$(uci get wbc.video.fecnum)
-packetsize=$(uci get wbc.video.packetsize)
-frametype=$(uci get wbc.video.frametype)
-rate=$(uci get wbc.video.bitrate)
+datanum=$(uci get wbc.video.datanum 2>/dev/null)
+fecnum=$(uci get wbc.video.fecnum 2>/dev/null)
+packetsize=$(uci get wbc.video.packetsize 2>/dev/null)
+frametype=$(uci get wbc.video.frametype 2>/dev/null)
+rate=$(uci get wbc.video.bitrate 2>/dev/null)
 mode=0
-nic=$(uci get wbc.nic.iface)
-udp_port=$(uci get wbc.video.listen_port) 
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+udp_port=$(uci get wbc.video.listen_port 2>/dev/null) 
 udp_bufsize=262144
-video_forward_port=$(uci get wbc.video.listen_port)
-video_fps=$(uci get wbc.video.fps)
-video_size=$(uci get wbc.video.imgsize)
+video_forward_port=$(uci get wbc.video.listen_port 2>/dev/null)
+video_fps=$(uci get wbc.video.fps 2>/dev/null)
+video_size=$(uci get wbc.video.imgsize 2>/dev/null)
 video_bitrate=1024000
-video_keyframerate=$(uci get wbc.video.keyframerate)
+video_keyframerate=$(uci get wbc.video.keyframerate 2>/dev/null)
 
 EOF
 		echo "" >> $WBC_INI_FILE
 	fi
 	# 2. rx #wip
-	if [ "$(uci get wbc.video.mode)" = "rx" ]; then
+	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "rx" ]; then
 		cat >> $WBC_INI_FILE <<EOF
 [rx]
 port=0
-datanum=$(uci get wbc.video.datanum)
-fecnum=$(uci get wbc.video.fecnum)
-packetsize=$(uci get wbc.video.packetsize)
-bufsize=$(uci get wbc.video.rxbuf)
-nic=$(uci get wbc.nic.iface)
-udp_ip=$(uci get wbc.video.send_ip_port|cut -d ':' -f 1)
-udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
+datanum=$(uci get wbc.video.datanum 2>/dev/null)
+fecnum=$(uci get wbc.video.fecnum 2>/dev/null)
+packetsize=$(uci get wbc.video.packetsize 2>/dev/null)
+bufsize=$(uci get wbc.video.rxbuf 2>/dev/null)
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+udp_ip=$(uci get wbc.video.send_ip_port 2>/dev/null|cut -d ':' -f 1)
+udp_port=$(uci get wbc.video.send_ip_port 2>/dev/null|cut -d ':' -f 2)
 
 udp_bind_port=$RX_UDP_BIND_PORT
 recording=$(uci get wbc.video.save_enable 2>/dev/null)	
@@ -107,33 +107,33 @@ recording_dir=$(uci get wbc.video.savepath 2>/dev/null)
 
 [video]
 mode=rx	
-udp_port=$(uci get wbc.video.send_ip_port|cut -d ':' -f 2)
+udp_port=$(uci get wbc.video.send_ip_port 2>/dev/null|cut -d ':' -f 2)
 udp_bufsize=524288
 
 [alive]	
-udp_ip=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 1)
-udp_port=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 2)
+udp_ip=$(uci get wbc.video.alive_send_ip_port 2>/dev/null|cut -d ':' -f 1)
+udp_port=$(uci get wbc.video.alive_send_ip_port 2>/dev/null|cut -d ':' -f 2)
 udp_bind_port=35010
 
 [alive_in]	
-udp_port=$(uci get wbc.video.alive_send_ip_port|cut -d ':' -f 2)
+udp_port=$(uci get wbc.video.alive_send_ip_port 2>/dev/null| cut -d ':' -f 2)
 exec=monit restart wbc-hellovideo
 
 EOF
 		echo "" >> $WBC_INI_FILE
 	fi
 
-	if [ $(uci get wbc.rssi.enable) -eq 1 ]; then
-		if [ "$(uci get wbc.rssi.mode)" = "rx" ]; then
+	if [ $(uci get wbc.rssi.enable 2>/dev/null) -eq 1 ]; then
+		if [ "$(uci get wbc.rssi.mode 2>/dev/null)" = "rx" ]; then
 			cat >> $WBC_INI_FILE <<EOF
 [rssirx]
-udp_ip=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 1)
-udp_port=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2)
+udp_ip=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 1)
+udp_port=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 2)
 udp_bind_port=$RX_RSSI_UDP_BIND_PORT
 
 [rssi_in]
 mode=rx
-udp_port=$(uci get wbc.rssi.send_ip_port|cut -d ':' -f 2)
+udp_port=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 2)
 
 EOF
 			echo "" >> $WBC_INI_FILE
@@ -147,9 +147,9 @@ EOF
 			cat >> $WBC_INI_FILE <<EOF
 [rx_telemetry]
 port=1
-nic=$(uci get wbc.nic.iface)
-udp_ip=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 1)
-udp_port=$(uci get wbc.telemetry.send_ip_port|cut -d ':' -f 2)
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+udp_ip=$(uci get wbc.telemetry.send_ip_port 2>/dev/null |cut -d ':' -f 1)
+udp_port=$(uci get wbc.telemetry.send_ip_port 2>/dev/null |cut -d ':' -f 2)
 udp_bind_port=$RX_TELE_UDP_BIND_PORT
 recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
 recording_dir=$(uci get wbc.telemetry.savepath 2>/dev/null)
@@ -160,13 +160,13 @@ EOF
 		if [ "$(uci get wbc.telemetry.mode)" = "tx" ]; then 
 			cat >> $WBC_INI_FILE <<EOF
 [tx_telemetry]
-cts_protection=$(uci get wbc.telemetry.cts)
+cts_protection=$(uci get wbc.telemetry.cts2>/dev/null)
 port=1
-retrans_count=$(uci get wbc.telemetry.retrans)
-tele_protocol=$(uci get wbc.telemetry.proto)
-rate=$(uci get wbc.telemetry.bitrate)
+retrans_count=$(uci get wbc.telemetry.retrans 2>/dev/null)
+tele_protocol=$(uci get wbc.telemetry.proto 2>/dev/null)
+rate=$(uci get wbc.telemetry.bitrate 2>/dev/null)
 mode=0
-nic=$(uci get wbc.nic.iface)
+nic=$(uci get wbc.nic.iface 2>/dev/null)
 
 EOF
 			echo "" >> $WBC_INI_FILE
@@ -187,14 +187,14 @@ init() {
 	# 0. Init Wi-Fi card here
 	echo "YJSNPI-Broadcast: Init Wi-Fi Card..."
 	init_nic
-	if [ "$(uci get wbc.video.mode)" = "tx" ]; then
+	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
 		echo "YJSNPI-Broadcast: TX measure..."
 		echo $(measure) > /tmp/bitrate_measured_kbit
 		echo "    TX measure finished, $(cat /tmp/bitrate_measured_kbit)"
-		if [ "$(uci get wbc.video.bitrate_mode)" = "auto" ]; then
-			echo `expr $(cat /tmp/bitrate_measured_kbit) \* $(uci get wbc.video.bitrate_percent) / 102400` > /tmp/bitrate_kbit
+		if [ "$(uci get wbc.video.bitrate_mode 2>/dev/null)" = "auto" ]; then
+			echo `expr $(cat /tmp/bitrate_measured_kbit) \* $(uci get wbc.video.bitrate_percent 2>/dev/null) / 102400` > /tmp/bitrate_kbit
 		else
-			echo $(uci get wbc.video.bitrate_manual) > /tmp/bitrate_kbit
+			echo $(uci get wbc.video.bitrate_manual 2>/dev/null) > /tmp/bitrate_kbit
 		fi 
 		BITRATE_BIT=`expr $(cat /tmp/bitrate_kbit) \* 1024`
 		sed -i "s/video_bitrate=1024000/video_bitrate=$BITRATE_BIT/g" $WBC_INI_FILE
@@ -203,8 +203,8 @@ init() {
 		echo 1000 > /tmp/bitrate_kbit
 	fi
 
-	rm /www/$(uci get wbc.wbc.confpath)
-	ln -s $WBC_INI_FILE /www/$(uci get wbc.wbc.confpath)
+	rm /www/$(uci get wbc.wbc.confpath 2>/dev/null)
+	ln -s $WBC_INI_FILE /www/$(uci get wbc.wbc.confpath 2>/dev/null)
 
 	# To-do: Find out what these things mean and how to bypass
 
@@ -217,7 +217,7 @@ init() {
 	/usr/sbin/sharedmem_init_rx
 	
 	# ath9k_hw parameters (reboot to apply)
-	ATH9K_HW_PARAMS=$(uci get wbc.nic.ath9k_hwparams)
+	ATH9K_HW_PARAMS=$(uci get wbc.nic.ath9k_hwparams 2>/dev/null)
 	echo $ATH9K_HW_PARAMS > /etc/modules.d/ath9k_hw
 }
 
@@ -254,7 +254,7 @@ video_rx_instance() {
 
 rssi_tx_instance() {
 	procd_open_instance "rssi_tx"
-	procd_set_param command /usr/sbin/rssitx $(uci get wbc.nic.iface)
+	procd_set_param command /usr/sbin/rssitx $(uci get wbc.nic.iface 2>/dev/null)
 #	procd_set_param stdout 1 	# so tm noisy
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
@@ -264,7 +264,7 @@ rssi_tx_instance() {
 
 rssi_rx_instance() {
 	procd_open_instance "rssi_rx"
-	procd_set_param command /usr/sbin/rssirx $(uci get wbc.nic.iface)
+	procd_set_param command /usr/sbin/rssirx $(uci get wbc.nic.iface 2>/dev/null)
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
@@ -282,7 +282,7 @@ rssi_rx_instance() {
 
 telemetry_tx_instance() {
 	procd_open_instance "telemetry_tx"
-	procd_set_param command socat -u $(uci get wbc.telemetry.uart),b$(uci get wbc.telemetry.baud),raw 
+	procd_set_param command socat -u $(uci get wbc.telemetry.uart 2>/dev/null),b$(uci get wbc.telemetry.baud 2>/dev/null),raw 
 	procd_append_param command EXEC:"/usr/sbin/tx_telemetry $WBC_INI_FILE"
 	procd_set_param stdout 1
 	procd_set_param stderr 1
@@ -292,7 +292,7 @@ telemetry_tx_instance() {
 }
 
 telemetry_rx_instance() {
-	stty -F $(uci get wbc.telemetry.uart) $STTY_ARGS $(uci get wbc.telemetry.baud) 
+	stty -F $(uci get wbc.telemetry.uart 2>/dev/null) $STTY_ARGS $(uci get wbc.telemetry.baud 2>/dev/null) 
 	procd_open_instance "telemetry_rx"
 	procd_set_param command /usr/sbin/rx_rc_telemetry_buf $WBC_INI_FILE
 	procd_set_param stdout 1
@@ -304,13 +304,13 @@ telemetry_rx_instance() {
 
 start_video() {
 	# 1. Video TX/RX Instance
-	if [ $(uci get wbc.video.enable) -eq 1 ]; then
+	if [ $(uci get wbc.video.enable 2>/dev/null) -eq 1 ]; then
 		echo "YJSNPI-Broadcast: Video Transfer Enabled."
-		if [ "$(uci get wbc.video.mode)" = "tx" ]; then
+		if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
 			video_tx_instance
 			echo "    Video TX Mode, Starting tx..."
 		fi
-		if [ "$(uci get wbc.video.mode)" = "rx" ]; then
+		if [ "$(uci get wbc.video.mode 2>/dev/null)" = "rx" ]; then
 			video_rx_instance
 			echo "    Video RX Mode, Starting rx..."
 		fi
@@ -318,36 +318,36 @@ start_video() {
 }
 
 start_rssi() {
-	if [ $(uci get wbc.rssi.enable) -eq 1 ]; then
+	if [ $(uci get wbc.rssi.enable 2>/dev/null) -eq 1 ]; then
 		echo "YJSNPI-Broadcast: RSSI Enabled."
-		if [ "$(uci get wbc.rssi.mode)" = "tx" ]; then
+		if [ "$(uci get wbc.rssi.mode 2>/dev/null)" = "tx" ]; then
 			rssi_tx_instance
 			echo "    RSSI TX Mode, Starting rssitx..."
 		fi
-		if [ "$(uci get wbc.rssi.mode)" = "rx" ]; then
+		if [ "$(uci get wbc.rssi.mode 2>/dev/null)" = "rx" ]; then
 			rssi_rx_instance
-			echo "    RSSI RX Mode, Starting rssirx, forward to $(uci get wbc.rssi.send_ip_port) ..."
+			echo "    RSSI RX Mode, Starting rssirx, forward to $(uci get wbc.rssi.send_ip_port 2>/dev/null) ..."
 		fi
 	fi
 }
 
 start_telemetry() {
-	if [ $(uci get wbc.telemetry.enable) -eq 1 ]; then
+	if [ $(uci get wbc.telemetry.enable 2>/dev/null) -eq 1 ]; then
 		echo "YJSNPI-Broadcast: Telemetry Enabled."
-		if [ "$(uci get wbc.telemetry.mode)" = "rx" ]; then
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "rx" ]; then
 			 telemetry_rx_instance
-			echo "    Telemetry RX Mode, redirect to $(uci get wbc.telemetry.send_ip_port) and $(uci get wbc.telemetry.uart)..."
+			echo "    Telemetry RX Mode, redirect to $(uci get wbc.telemetry.send_ip_port 2>/dev/null) and $(uci get wbc.telemetry.uart 2>/dev/null)..."
 		fi
 
-		if [ "$(uci get wbc.telemetry.mode)" = "tx" ]; then 
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "tx" ]; then 
 			telemetry_tx_instance
-			echo "YJSNPI-Broadcast: Telemetry TX Mode on $(uci get wbc.telemetry.uart)..."
+			echo "YJSNPI-Broadcast: Telemetry TX Mode on $(uci get wbc.telemetry.uart 2>/dev/null)..."
 		fi
 	fi
 }
 
 start_service() {
-	if [ $(uci get wbc.wbc.enable) -eq 0 ]; then 
+	if [ $(uci get wbc.wbc.enable 2>/dev/null) -eq 0 ]; then 
 		exit
 	fi
 	init
@@ -355,7 +355,7 @@ start_service() {
 	start_telemetry
 	start_rssi
 	echo `date '+%s'` >/var/run/wbc/restart_timestamp
-	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum
+#	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum
 }
 
 service_triggers() {
