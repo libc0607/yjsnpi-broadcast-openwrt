@@ -65,7 +65,7 @@ msgid "Port on Air"
 msgstr "空中端口"
 
 msgid "Wireless Frame Type"
-msgstr "无线帧类型"
+msgstr "帧类型"
 
 msgid "Bit Rate"
 msgstr "比特率"
@@ -229,8 +229,16 @@ msgstr "需要安装 OpenSSL"
 msgid "Uplink RX Protocol"
 msgstr "上行接收输出协议"
 
+msgid "Config file on HTTP"
+msgstr "通过HTTP获取配置文件的路径"
 
+msgid "ath9k_hw Module Parameters"
+msgstr "ath9k_hw 内核模块参数"
 
+msgid "Note: ath9k only; Reboot to apply"
+msgstr "注：仅支持ath9k；重启生效"
 
+msgid "Send Alive Msg to IP:Port"
+msgstr "将存活心跳发送至 IP:Port"
 
 
