@@ -141,9 +141,9 @@ EOF
 	fi
 	
 	
-	if [ $(uci get wbc.telemetry.enable) -eq 1 ]; then
+	if [ $(uci get wbc.telemetry.enable 2>/dev/null) -eq 1 ]; then
 		echo "YJSNPI-Broadcast: Telemetry Enabled."
-		if [ "$(uci get wbc.telemetry.mode)" = "rx" ]; then
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "rx" ]; then
 			cat >> $WBC_INI_FILE <<EOF
 [rx_telemetry]
 port=1
@@ -157,10 +157,10 @@ recording_dir=$(uci get wbc.telemetry.savepath 2>/dev/null)
 EOF
 			echo "" >> $WBC_INI_FILE
 		fi
-		if [ "$(uci get wbc.telemetry.mode)" = "tx" ]; then 
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "tx" ]; then 
 			cat >> $WBC_INI_FILE <<EOF
 [tx_telemetry]
-cts_protection=$(uci get wbc.telemetry.cts2>/dev/null)
+cts_protection=$(uci get wbc.telemetry.cts 2>/dev/null)
 port=1
 retrans_count=$(uci get wbc.telemetry.retrans 2>/dev/null)
 tele_protocol=$(uci get wbc.telemetry.proto 2>/dev/null)
