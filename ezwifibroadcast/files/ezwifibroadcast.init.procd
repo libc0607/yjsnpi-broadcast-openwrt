@@ -176,6 +176,7 @@ EOF
 
 init() {
 	# -1. Generate ini file and link it to /www
+	rm /www/$(uci get wbc.wbc.confpath 2>/dev/null) 2>/dev/null
 	gen_ini
 
 	# -0.5. and osd ini
@@ -189,7 +190,8 @@ init() {
 	init_nic
 	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
 		echo "YJSNPI-Broadcast: TX measure..."
-		echo $(measure) > /tmp/bitrate_measured_kbit
+		MEASURE_RESULT=$(measure)
+		echo $MEASURE_RESULT > /tmp/bitrate_measured_kbit
 		echo "    TX measure finished, $(cat /tmp/bitrate_measured_kbit)"
 		if [ "$(uci get wbc.video.bitrate_mode 2>/dev/null)" = "auto" ]; then
 			echo `expr $(cat /tmp/bitrate_measured_kbit) \* $(uci get wbc.video.bitrate_percent 2>/dev/null) / 102400` > /tmp/bitrate_kbit
