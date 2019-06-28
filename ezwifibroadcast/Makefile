@@ -5,8 +5,8 @@ PKG_RELEASE:=1.6R6
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=https://github.com/libc0607/YJSNPI-Broadcast.git
-PKG_SOURCE_DATE:=2019-06-26
-PKG_SOURCE_VERSION:=20f202487ae4c2f60abf33bec5af0cdb6e13a08a
+PKG_SOURCE_DATE:=2019-06-28
+PKG_SOURCE_VERSION:=805b9d9b69caceb13e7cab153c94fd60cbf1bb9a
 
 PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -55,15 +55,15 @@ define Package/ezwifibroadcast/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssirx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_write_shmem $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward_stdout $(1)/usr/sbin/
+#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_write_shmem $(1)/usr/sbin/
+#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward_stdout $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_status $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/check_alive $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry_buf $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry $(1)/usr/sbin/
+#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_tx $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/suftees $(1)/usr/sbin/
+#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/suftees $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/etc/modules.d/
 	$(INSTALL_BIN) ./files/ath9k_hw.modprobe.options $(1)/etc/modules.d/ath9k_hw
 	$(INSTALL_DIR) $(1)/etc/init.d
@@ -72,8 +72,8 @@ ifdef CONFIG_PACKAGE_EZWIFIBROADCAST_PROCD
 else
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init $(1)/etc/init.d/ezwifibroadcast
 endif
-	$(INSTALL_DIR) $(1)/etc/wbc
-	$(INSTALL_BIN) ./files/osdconfig.ini $(1)/etc/wbc
+#	$(INSTALL_DIR) $(1)/etc/wbc
+#	$(INSTALL_BIN) ./files/osdconfig.ini $(1)/etc/wbc
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/ezwifibroadcast.defaults $(1)/etc/uci-defaults
 	$(INSTALL_DIR) $(1)/etc/config
