@@ -157,6 +157,7 @@ o_video_fps:value(240, "240 fps")
 o_video_imgsize = s_video:option(ListValue, "imgsize", translate("Img Size (resolution)"))
 o_video_imgsize.default = "1280x720"
 o_video_imgsize.placeholder = "1280x720"
+o_video_imgsize:value("240x144")
 o_video_imgsize:value("480x272")
 o_video_imgsize:value("800x480")
 o_video_imgsize:value("1280x720")
@@ -180,7 +181,7 @@ o_video_bitrate_percent:depends("bitrate_mode", "auto")
 o_video_bitrate_manual = s_video:option(Value, "bitrate_manual", translate("Video Bitrate Manual (kbit/s)"))
 o_video_bitrate_manual.default = 5000
 o_video_bitrate_manual.placeholder = 5000
-o_video_bitrate_manual.datatype = "range(500,16000)"
+o_video_bitrate_manual.datatype = "range(100,16000)"
 o_video_bitrate_manual:depends("bitrate_mode", "manual")
 -- wbc.video.keyframerate: Keyframe Rate
 o_video_keyframerate = s_video:option(Value, "keyframerate", translate("Key Frame Rate"))
