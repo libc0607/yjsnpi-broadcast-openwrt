@@ -226,8 +226,8 @@ init() {
 video_tx_instance() {
 	procd_open_instance "video_tx"
 	#if [ $(uci get wbc.video.encrypt_enable) -eq 1 ]; then
-#	procd_set_param command socat -u UDP-LISTEN:$(uci get wbc.video.listen_port) EXEC:"/usr/sbin/tx_rawsock -p 0 -b $(uci get wbc.video.datanum) -r $(uci get wbc.video.fecnum) -f $(uci get wbc.video.packetsize) -t $(uci get wbc.video.frametype) -d $(uci get wbc.video.bitrate) -y 0 $(uci get wbc.nic.iface)"
-	procd_set_param command /usr/sbin/tx_rawsock $WBC_INI_FILE
+	procd_set_param command socat -u UDP-LISTEN:$(uci get wbc.video.listen_port) EXEC:"/usr/sbin/tx_rawsock $WBC_INI_FILE"
+#	procd_set_param command /usr/sbin/tx_rawsock $WBC_INI_FILE
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
