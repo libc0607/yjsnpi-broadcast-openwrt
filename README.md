@@ -6,3 +6,6 @@ Under development.
  Video encryption  
  R/C uplink  
  4G LTE USB modem & kcptun   
+  
+## Testbuild 
+See [Telegram channel: YJSNPI-Broadcast Firmware release](https://t.me/yjsnpi_broadcast)  
