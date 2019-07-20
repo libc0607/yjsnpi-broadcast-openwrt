@@ -189,13 +189,12 @@ o_video_keyframerate.default = 5
 o_video_keyframerate.placeholder = 5
 o_video_keyframerate.datatype = "range(2,10)"
 o_video_keyframerate:depends("mode", "tx")
---[[
 -- wbc.video.extraparams: raspivid Extra Params
-o_video_extraparams = s_video:option(Value, "extraparams", translate("raspivid Extra Params"))
+o_video_extraparams = s_video:option(Value, "extraparams", translate("raspivid Extra Params"), "<a href='https://github.com/rodizio1/EZ-WifiBroadcast/wiki/Expert-~-Raspivid-camera-settings'>Learn more</a>")
 o_video_extraparams.default = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams.placeholder = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams:depends("mode", "tx")
-]]
+
 -- wbc.video.save_enable: Video Save Enable
 o_video_save_enable = s_video:option(Flag, "save_enable", translate("Enable Video Save"))
 o_video_save_enable.rmempty = false

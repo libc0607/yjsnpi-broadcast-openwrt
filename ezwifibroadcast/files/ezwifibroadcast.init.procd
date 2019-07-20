@@ -84,6 +84,7 @@ video_fps=$(uci get wbc.video.fps 2>/dev/null)
 video_size=$(uci get wbc.video.imgsize 2>/dev/null)
 video_bitrate=1024000
 video_keyframerate=$(uci get wbc.video.keyframerate 2>/dev/null)
+video_extraparams=$(uci get wbc.video.extraparams 2>/dev/null)
 
 EOF
 		echo "" >> $WBC_INI_FILE
