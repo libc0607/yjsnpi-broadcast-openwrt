@@ -9,6 +9,7 @@ WBC_INI_FILE=/var/run/wbc/config.ini
 RX_UDP_BIND_PORT=30002
 RX_RSSI_UDP_BIND_PORT=30003
 RX_TELE_UDP_BIND_PORT=30004
+AIRPI_SYSAIR_UDP_BIND_PORT=30006
 
 EXTRA_COMMANDS="measure ubus_mon"
 EXTRA_HELP=<<EOF
@@ -67,6 +68,11 @@ EOF
 
 	# 1. tx_rawsock/tx_measure 
 	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
+		if [ $(uci get wbc.video.wifimode 2>/dev/null) -eq 0 ]; then 
+			VIDEO_WIFI_RATE=$(uci get wbc.video.bitrate 2>/dev/null)		
+		else
+			VIDEO_WIFI_RATE=$(uci get wbc.video.mcs 2>/dev/null)	
+		fi
 		cat >> $WBC_INI_FILE <<EOF
 [tx]
 port=0
@@ -74,7 +80,7 @@ datanum=$(uci get wbc.video.datanum 2>/dev/null)
 fecnum=$(uci get wbc.video.fecnum 2>/dev/null)
 packetsize=$(uci get wbc.video.packetsize 2>/dev/null)
 frametype=$(uci get wbc.video.frametype 2>/dev/null)
-rate=$(uci get wbc.video.bitrate 2>/dev/null)
+rate=$VIDEO_WIFI_RATE
 mode=0
 nic=$(uci get wbc.nic.iface 2>/dev/null)
 udp_port=$(uci get wbc.video.listen_port 2>/dev/null) 
@@ -85,6 +91,17 @@ video_size=$(uci get wbc.video.imgsize 2>/dev/null)
 video_bitrate=1024000
 video_keyframerate=$(uci get wbc.video.keyframerate 2>/dev/null)
 video_extraparams=$(uci get wbc.video.extraparams 2>/dev/null)
+wifimode=$(uci get wbc.video.wifimode 2>/dev/null)
+ldpc=$(uci get wbc.video.ldpc 2>/dev/null)
+
+[sysair_forward_in]
+udp_port=$(uci get wbc.video.sysair_forward_port 2>/dev/null)
+mode=tx
+
+[sysair_forward]
+udp_ip=$(ifconfig br-lan|grep "inet addr"|awk {'print $2'}|cut -d ":" -f 2)
+udp_port=$(uci get wbc.video.sysair_forward_port 2>/dev/null)
+udp_bind_port=$AIRPI_SYSAIR_UDP_BIND_PORT 
 
 EOF
 		echo "" >> $WBC_INI_FILE
@@ -159,16 +176,22 @@ EOF
 			echo "" >> $WBC_INI_FILE
 		fi
 		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "tx" ]; then 
+			if [ $(uci get wbc.telemetry.wifimode 2>/dev/null) -eq 0 ]; then 
+				TELE_WIFI_RATE=$(uci get wbc.telemetry.bitrate 2>/dev/null)		
+			else
+				TELE_WIFI_RATE=$(uci get wbc.telemetry.mcs 2>/dev/null)	
+			fi
 			cat >> $WBC_INI_FILE <<EOF
 [tx_telemetry]
 cts_protection=$(uci get wbc.telemetry.cts 2>/dev/null)
 port=1
 retrans_count=$(uci get wbc.telemetry.retrans 2>/dev/null)
 tele_protocol=$(uci get wbc.telemetry.proto 2>/dev/null)
-rate=$(uci get wbc.telemetry.bitrate 2>/dev/null)
+rate=$TELE_WIFI_RATE
 mode=0
 nic=$(uci get wbc.nic.iface 2>/dev/null)
-
+wifimode=$(uci get wbc.telemetry.wifimode 2>/dev/null)
+ldpc=$(uci get wbc.telemetry.ldpc 2>/dev/null)
 EOF
 			echo "" >> $WBC_INI_FILE
 		fi
