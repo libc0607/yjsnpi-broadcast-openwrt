@@ -72,7 +72,7 @@ o_nic_chanbw:value(10, "10 MHz")
 o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
 --wbc.nic.ath9k_hwparams: ath9k_hw Kernel module parameters
-o_nic_ath9k_hwparams = s_nic:option(Value, "ath9k_hwparams", translate("ath9k_hw Module Parameters"), translate("Note: ath9k only; Reboot to apply"))
+o_nic_ath9k_hwparams = s_nic:option(Value, "ath9k_hwparams", translate("ath9k_hw Module Parameters"), translate("Note: ar9002 only; Reboot to apply"))
 o_nic_ath9k_hwparams.rmempty = false
 o_nic_ath9k_hwparams.default = ""
 
@@ -246,6 +246,16 @@ o_video_savepath = s_video:option(Value, "savepath", translate("Save Raw Video T
 o_video_savepath.default = '/mnt/sda1/wbc_video'
 o_video_savepath.placeholder = '/mnt/sda1/wbc_video'
 o_video_savepath:depends("save_enable", 1)
+
+-- wbc.video.sysair_forward_port: shmem sysair forward listen udp port
+o_video_sysair_forward_port = s_video:option(Value, "sysair_forward_port", translate("shmem sysair forward listen udp port"))
+o_video_sysair_forward_port.rmempty = false
+o_video_sysair_forward_port.datatype = "portrange(1024,65535)"
+o_video_sysair_forward_port:depends("mode", "tx")
+o_video_sysair_forward_port.placeholder = 34999
+o_video_sysair_forward_port.default = 34999
+
+
 --[[
 -- wbc.video.encrypt_enable: Video Encrypt Enable
 o_video_encrypt_enable = s_video:option(Flag, "encrypt_enable", translate("Enable Video Encrypt"), translate("Attention: Higher CPU Cost"))
@@ -340,15 +350,53 @@ o_telemetry_proto:value(0, translate("Mavlink"))
 o_telemetry_proto:value(1, translate("Generic"))
 o_telemetry_proto.default = 0
 o_telemetry_proto:depends("mode", "tx")
--- wbc.telemetry.bitrate: Telemetry TX Bit Rate
-o_telemetry_bitrate = s_telemetry:option(ListValue, "bitrate", translate("Telemetry TX Bitrate"))
-o_telemetry_bitrate:value(6, "6 Mbps")
-o_telemetry_bitrate:value(12, "12 Mbps")
-o_telemetry_bitrate:value(18, "18 Mbps")
-o_telemetry_bitrate:value(24, "24 Mbps")
-o_telemetry_bitrate:value(36, "36 Mbps")
-o_telemetry_bitrate.default = 24
-o_telemetry_bitrate:depends("mode", "tx")
+-- wbc.telemetry.bitrate: Telemetry TX Bit Rate (802.11abg)
+o_telemetry_bitrate = s_telemetry:option(ListValue, "bitrate", translate("Telemetry TX Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; same for 5MHz. "))
+o_telemetry_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
+o_telemetry_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
+o_telemetry_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
+o_telemetry_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
+o_telemetry_bitrate:value(11, "11 Mbps (802.11b, CCK)")
+o_telemetry_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
+o_telemetry_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
+o_telemetry_bitrate:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
+o_telemetry_bitrate:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
+o_telemetry_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
+o_telemetry_bitrate.default = 12
+o_telemetry_bitrate:depends("wifimode", 0)
+-- wbc.telemetry.mcs: MCS index (802.11n/ac)
+o_telemetry_mcs = s_telemetry:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; same for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
+o_telemetry_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
+o_telemetry_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
+o_telemetry_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
+o_telemetry_mcs:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
+o_telemetry_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
+o_telemetry_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
+o_telemetry_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
+o_telemetry_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
+o_telemetry_mcs:value(8, "MCS 8 (13.0 Mbps, 2x2, BPSK, 1/2)")
+o_telemetry_mcs:value(9, "MCS 9 (26.0 Mbps, 2x2, QPSK, 1/2)")
+o_telemetry_mcs:value(10, "MCS 10 (39.0 Mbps, 2x2, QPSK, 3/4)")
+o_telemetry_mcs:value(11, "MCS 11 (52.0 Mbps, 2x2, 16-QAM, 1/2)")
+o_telemetry_mcs:value(12, "MCS 12 (78.0 Mbps, 2x2, 16-QAM, 3/4)")
+o_telemetry_mcs:value(13, "MCS 13 (104.0 Mbps, 2x2, 64-QAM, 2/3)")
+o_telemetry_mcs:value(14, "MCS 14 (117.0 Mbps, 2x2, 64-QAM, 3/4)")
+o_telemetry_mcs:value(15, "MCS 15 (130.0 Mbps, 2x2, 64-QAM, 5/6)")
+-- wbc.telemetry.wifimode: Wi-Fi mode (802.11g / 802.11n)
+o_telemetry_wifimode = s_telemetry:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
+o_telemetry_wifimode:value(0, "802.11abg")
+o_telemetry_wifimode:value(1, "802.11n (MCS)")
+o_telemetry_wifimode.default = 0
+o_telemetry_wifimode:depends("mode", "tx")
+-- wbc.telemetry.ldpc: LDPC encode (for 802.11n/802.11ac)
+o_telemetry_ldpc = s_telemetry:option(Flag, "ldpc", translate("LDPC encode enable"), translate("Make sure that LDPC is supported by both tx & rx Wi-Fi card"))
+o_telemetry_ldpc.default = 0
+o_telemetry_ldpc:depends("wifimode", "1")
+o_telemetry_ldpc:depends("wifimode", "2")
+o_telemetry_ldpc:depends("wifimode", "3")
+
+
+
 -- wbc.telemetry.send_ip_port: Telemetry RX Send to IP:Port	
 o_telemetry_send_ip_port = s_telemetry:option(Value, "send_ip_port", translate("Send Telemetry Data to IP:Port"))
 o_telemetry_send_ip_port.datatype = "ipaddrport"
