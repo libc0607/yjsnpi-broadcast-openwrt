@@ -71,11 +71,33 @@ o_nic_chanbw:value(5,  "5 MHz")
 o_nic_chanbw:value(10, "10 MHz")
 o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
---wbc.nic.ath9k_hwparams: ath9k_hw Kernel module parameters
-o_nic_ath9k_hwparams = s_nic:option(Value, "ath9k_hwparams", translate("ath9k_hw Module Parameters"), translate("Note: ar9002 only; Reboot to apply"))
-o_nic_ath9k_hwparams.rmempty = false
-o_nic_ath9k_hwparams.default = ""
 
+-- wbc.nic.txpower: TX Power (ath9k only)
+o_nic_txpower = s_nic:option(ListValue, "txpower", translate("TX Power (ath9k only)"), 
+			translate("Note: ath9k only; Too high will cause high EVM and/or burn your card! 1/2 dBm unit in /etc/config/"))
+o_nic_txpower.rmempty = false
+o_nic_txpower.datatype = "range(0,62)"
+o_nic_txpower:value(2,   "1  dBm")
+o_nic_txpower:value(8,   "4  dBm")
+o_nic_txpower:value(14,  "7  dBm")
+o_nic_txpower:value(20,  "10 dBm")
+o_nic_txpower:value(26,  "13 dBm")
+o_nic_txpower:value(32,  "16 dBm")
+o_nic_txpower:value(34,  "17 dBm")
+o_nic_txpower:value(36,  "18 dBm")
+o_nic_txpower:value(38,  "19 dBm")
+o_nic_txpower:value(40,  "20 dBm")
+o_nic_txpower:value(42,  "21 dBm")
+o_nic_txpower:value(44,  "22 dBm")
+o_nic_txpower:value(46,  "23 dBm")
+o_nic_txpower:value(48,  "24 dBm")
+o_nic_txpower:value(50,  "25 dBm")
+o_nic_txpower:value(52,  "26 dBm")
+o_nic_txpower:value(54,  "27 dBm")
+o_nic_txpower:value(56,  "28 dBm")
+o_nic_txpower:value(58,  "29 dBm")
+o_nic_txpower:value(60,  "30 dBm")
+o_nic_txpower.default = 40
 
 -- wbc.video: Video transfer settings
 s_video = m:section(TypedSection, "video", translate("Video Transfer Settings"))
@@ -382,6 +404,7 @@ o_telemetry_mcs:value(12, "MCS 12 (78.0 Mbps, 2x2, 16-QAM, 3/4)")
 o_telemetry_mcs:value(13, "MCS 13 (104.0 Mbps, 2x2, 64-QAM, 2/3)")
 o_telemetry_mcs:value(14, "MCS 14 (117.0 Mbps, 2x2, 64-QAM, 3/4)")
 o_telemetry_mcs:value(15, "MCS 15 (130.0 Mbps, 2x2, 64-QAM, 5/6)")
+o_telemetry_mcs:depends("wifimode", 1)
 -- wbc.telemetry.wifimode: Wi-Fi mode (802.11g / 802.11n)
 o_telemetry_wifimode = s_telemetry:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
 o_telemetry_wifimode:value(0, "802.11abg")

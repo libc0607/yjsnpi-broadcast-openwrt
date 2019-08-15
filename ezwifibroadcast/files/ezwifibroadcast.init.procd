@@ -40,6 +40,7 @@ init_nic() {
 	NIC=$(uci get wbc.nic.iface 2>/dev/null)
 	FREQ=$(uci get wbc.nic.freq 2>/dev/null)
 	CHANBW=$(uci get wbc.nic.chanbw 2>/dev/null)
+	TXPOWER=$(uci get wbc.nic.txpower 2>/dev/null)
 	PHY_NAME=$(iwinfo $NIC info|grep "PHY name"|cut -d ':' -f 3)
 	iw reg set CN					
 	ifconfig $NIC mtu 2304
@@ -53,6 +54,13 @@ init_nic() {
 		echo $CHANBW > $CHANBW_PATH 
 	else
 		echo "    Init_NIC: $NIC on 5MHz/10MHz bandwidth is not supported. Use default instead."
+	fi
+	TXPOWER_PATH=$(find /sys/kernel/debug/ieee80211 -name txpower_man |grep $PHY_NAME)
+	if [ -f $TXPOWER_PATH ]; then
+		echo "    Init_NIC: $NIC maybe supports custom txpower settings."
+		echo $TXPOWER > $TXPOWER_PATH 
+	else
+		echo "    Init_NIC: $NIC not support custom txpower. Use default instead."
 	fi
 }
 gen_ini() {
@@ -242,9 +250,6 @@ init() {
 	/usr/sbin/sharedmem_init_tx
 	/usr/sbin/sharedmem_init_rx
 	
-	# ath9k_hw parameters (reboot to apply)
-	ATH9K_HW_PARAMS=$(uci get wbc.nic.ath9k_hwparams 2>/dev/null)
-	echo $ATH9K_HW_PARAMS > /etc/modules.d/ath9k_hw
 }
 
 video_tx_instance() {
