@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ezwifibroadcast
-PKG_RELEASE:=1.6R6
+PKG_RELEASE:=YJSNPIv0.1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=https://github.com/libc0607/YJSNPI-Broadcast.git
@@ -21,7 +21,8 @@ define Package/ezwifibroadcast
   +kmod-usb-net-rndis +kmod-usb2 +kmod-usb-ohci +kmod-usb-storage-extras \
   +kmod-usb-serial +kmod-usb-serial-ch341 +socat +usbutils +kmod-fs-ext4 \
   +kmod-fs-vfat +kmod-fs-autofs4 +kmod-nls-cp437 +kmod-nls-utf8\
-  +kmod-nls-iso8859-1 +ntfs-3g +block-mount +mount-utils +libiniparser
+  +kmod-nls-iso8859-1 +ntfs-3g +block-mount +mount-utils +libiniparser\
+  +kmod-ath9k 
 endef
 
 define Package/ezwifibroadcast/config
@@ -55,23 +56,19 @@ define Package/ezwifibroadcast/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssirx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_write_shmem $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward_stdout $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_status $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/check_alive $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry_buf $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_tx $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/suftees $(1)/usr/sbin/
-	$(INSTALL_DIR) $(1)/etc/modules.d/
-	$(INSTALL_BIN) ./files/ath9k_hw.modprobe.options $(1)/etc/modules.d/ath9k_hw
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sysair_forward_in $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_test $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_rc_sbus $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_sbus $(1)/usr/sbin/
+#	$(INSTALL_DIR) $(1)/etc/modules.d/
+#	$(INSTALL_BIN) ./files/ath9k_hw.modprobe.options $(1)/etc/modules.d/ath9k_hw
 	$(INSTALL_DIR) $(1)/etc/init.d
-ifdef CONFIG_PACKAGE_EZWIFIBROADCAST_PROCD
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init.procd $(1)/etc/init.d/ezwifibroadcast
-else
-	$(INSTALL_BIN) ./files/ezwifibroadcast.init $(1)/etc/init.d/ezwifibroadcast
-endif
 #	$(INSTALL_DIR) $(1)/etc/wbc
 #	$(INSTALL_BIN) ./files/osdconfig.ini $(1)/etc/wbc
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
