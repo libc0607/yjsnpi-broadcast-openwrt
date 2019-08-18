@@ -17,18 +17,7 @@ define Package/ezwifibroadcast
   SECTION:=net
   CATEGORY:=Network
   TITLE:=ezwifibroadcast
-  DEPENDS:=+librt +libpcap +coreutils +kmod-usb-net \
-  +kmod-usb-net-rndis +kmod-usb2 +kmod-usb-ohci +kmod-usb-storage-extras \
-  +kmod-usb-serial +kmod-usb-serial-ch341 +socat +usbutils +kmod-fs-ext4 \
-  +kmod-fs-vfat +kmod-fs-autofs4 +kmod-nls-cp437 +kmod-nls-utf8\
-  +kmod-nls-iso8859-1 +ntfs-3g +block-mount +mount-utils +libiniparser\
-  +kmod-ath9k 
-endef
-
-define Package/ezwifibroadcast/config
-config PACKAGE_EZWIFIBROADCAST_PROCD
-	bool "Use procd init script"
-	default y
+  DEPENDS:=+librt +libpcap +libiniparser
 endef
 
 define Package/ezwifibroadcast/description
