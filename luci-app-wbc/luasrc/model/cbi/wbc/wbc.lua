@@ -530,7 +530,7 @@ end
 o_rc_uart.default = "/dev/ttyUSB0"
 -- wbc.rc.proto: R/C TX Protocol
 o_rc_proto = s_uplink:option(ListValue, "proto", translate("R/C Protocol"))
-o_rc_proto:value(0, translate("S.BUS"))
+o_rc_proto:value("sbus", translate("S.BUS"))
 --o_rc_proto:value(1, translate("Generic"))
 o_rc_proto.default = 0
 
