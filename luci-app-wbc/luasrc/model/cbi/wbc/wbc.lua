@@ -162,7 +162,7 @@ o_video_ldpc:depends("wifimode", "1")
 o_video_ldpc:depends("wifimode", "2")
 o_video_ldpc:depends("wifimode", "3")
 -- wbc.video.bitrate: Bit Rate (802.11abg)
-o_video_bitrate = s_video:option(ListValue, "bitrate", translate("Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; same for 5MHz. "))
+o_video_bitrate = s_video:option(ListValue, "bitrate", translate("Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. "))
 o_video_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
 o_video_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
 o_video_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
@@ -177,7 +177,7 @@ o_video_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
 o_video_bitrate.default = 12
 o_video_bitrate:depends("wifimode", 0)
 -- wbc.video.mcs: MCS index (802.11n/ac)
-o_video_mcs = s_video:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; same for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
+o_video_mcs = s_video:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
 o_video_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
 o_video_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
 o_video_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
@@ -258,7 +258,6 @@ o_video_extraparams = s_video:option(Value, "extraparams", translate("raspivid E
 o_video_extraparams.default = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams.placeholder = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams:depends("mode", "tx")
-
 -- wbc.video.save_enable: Video Save Enable
 o_video_save_enable = s_video:option(Flag, "save_enable", translate("Enable Video Save"))
 o_video_save_enable.rmempty = false
@@ -268,7 +267,6 @@ o_video_savepath = s_video:option(Value, "savepath", translate("Save Raw Video T
 o_video_savepath.default = '/mnt/sda1/wbc_video'
 o_video_savepath.placeholder = '/mnt/sda1/wbc_video'
 o_video_savepath:depends("save_enable", 1)
-
 -- wbc.video.sysair_forward_port: shmem sysair forward listen udp port
 o_video_sysair_forward_port = s_video:option(Value, "sysair_forward_port", translate("shmem sysair forward listen udp port"))
 o_video_sysair_forward_port.rmempty = false
@@ -276,25 +274,14 @@ o_video_sysair_forward_port.datatype = "portrange(1024,65535)"
 o_video_sysair_forward_port:depends("mode", "tx")
 o_video_sysair_forward_port.placeholder = 34999
 o_video_sysair_forward_port.default = 34999
-
-
---[[
 -- wbc.video.encrypt_enable: Video Encrypt Enable
-o_video_encrypt_enable = s_video:option(Flag, "encrypt_enable", translate("Enable Video Encrypt"), translate("Attention: Higher CPU Cost"))
+o_video_encrypt_enable = s_video:option(Flag, "encrypt_enable", translate("Encrypt"), translate("May cause high CPU load"))
 o_video_encrypt_enable.rmempty = false
--- wbc.video.encrypt_method: Video Encrypt Method
-o_video_encrypt_method = s_video:option(Value, "encrypt_method", translate("Encrypt Method"), translate("Need OpenSSL installed"))
-o_video_encrypt_method.rmempty = false
-o_video_encrypt_method:value("aes-128-cfb")
-o_video_encrypt_method:value("blowfish")
-o_video_encrypt_method.default = "blowfish"
-o_video_encrypt_method:depends("encrypt_enable", 1)
 -- wbc.video.password: Encrypt Password
 o_video_encrypt_password = s_video:option(Value, "encrypt_password", translate("Password"))
 o_video_encrypt_password.rmempty = false
 o_video_encrypt_password.password = true
 o_video_encrypt_password:depends("encrypt_enable", 1)
-]]
 
 -- wbc.rssi: RSSI settings
 s_rssi = m:section(TypedSection, "rssi", translate("RSSI Settings"))
@@ -313,6 +300,14 @@ o_rssi_mode.default = "tx"
 o_rssi_send_ip_port = s_rssi:option(Value, "send_ip_port", translate("Send RSSI Data to IP:Port"))
 o_rssi_send_ip_port.datatype = "ipaddrport"
 o_rssi_send_ip_port:depends("mode", "rx")
+-- wbc.rssi.encrypt_enable: rssi Encrypt Enable
+o_rssi_encrypt_enable = s_rssi:option(Flag, "encrypt_enable", translate("Encrypt"))
+o_rssi_encrypt_enable.rmempty = false
+-- wbc.rssi.password: Encrypt Password
+o_rssi_encrypt_password = s_rssi:option(Value, "encrypt_password", translate("Password"))
+o_rssi_encrypt_password.rmempty = false
+o_rssi_encrypt_password.password = true
+o_rssi_encrypt_password:depends("encrypt_enable", 1)
 
 
 -- wbc.telemetry: Telemetry settings
@@ -345,14 +340,6 @@ o_telemetry_baud:value(115200, "115200 bps")
 o_telemetry_baud:value(230400, "230400 bps")
 o_telemetry_baud.default = 57600
 o_telemetry_baud:depends("mode", "tx")
---[[
--- wbc.telemetry.port: Telemetry Port on Air
--- 同 Video 的原因，故不需要设置
-o_telemetry_port = s_telemetry:option(Value, "port", translate("Telemetry Port on Air"))
-o_telemetry_port.default = 1
-o_telemetry_port.placeholder = 1
-o_telemetry_port.datatype = "range(0,127)"
-]]
 -- wbc.telemetry.cts: Telemetry TX CTS
 o_telemetry_cts = s_telemetry:option(ListValue, "cts", translate("Telemetry TX CTS Mode"))
 o_telemetry_cts:value(0, translate("CTS Protection Disabled"))
@@ -373,7 +360,7 @@ o_telemetry_proto:value(1, translate("Generic"))
 o_telemetry_proto.default = 0
 o_telemetry_proto:depends("mode", "tx")
 -- wbc.telemetry.bitrate: Telemetry TX Bit Rate (802.11abg)
-o_telemetry_bitrate = s_telemetry:option(ListValue, "bitrate", translate("Telemetry TX Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; same for 5MHz. "))
+o_telemetry_bitrate = s_telemetry:option(ListValue, "bitrate", translate("Telemetry TX Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. "))
 o_telemetry_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
 o_telemetry_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
 o_telemetry_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
@@ -387,7 +374,7 @@ o_telemetry_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
 o_telemetry_bitrate.default = 12
 o_telemetry_bitrate:depends("wifimode", 0)
 -- wbc.telemetry.mcs: MCS index (802.11n/ac)
-o_telemetry_mcs = s_telemetry:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; same for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
+o_telemetry_mcs = s_telemetry:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
 o_telemetry_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
 o_telemetry_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
 o_telemetry_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
@@ -417,9 +404,6 @@ o_telemetry_ldpc.default = 0
 o_telemetry_ldpc:depends("wifimode", "1")
 o_telemetry_ldpc:depends("wifimode", "2")
 o_telemetry_ldpc:depends("wifimode", "3")
-
-
-
 -- wbc.telemetry.send_ip_port: Telemetry RX Send to IP:Port	
 o_telemetry_send_ip_port = s_telemetry:option(Value, "send_ip_port", translate("Send Telemetry Data to IP:Port"))
 o_telemetry_send_ip_port.datatype = "ipaddrport"
@@ -440,6 +424,15 @@ o_telemetry_osd_ini_enable = s_telemetry:option(Flag, "osd_ini_enable", translat
 o_telemetry_osd_ini_enable.rmempty = false
 o_telemetry_osd_ini_enable:depends("mode", "rx")
 ]]--
+-- wbc.telemetry.encrypt_enable: telemetry Encrypt Enable
+o_telemetry_encrypt_enable = s_telemetry:option(Flag, "encrypt_enable", translate("Encrypt"))
+o_telemetry_encrypt_enable.rmempty = false
+-- wbc.telemetry.password: Encrypt Password
+o_telemetry_encrypt_password = s_telemetry:option(Value, "encrypt_password", translate("Password"))
+o_telemetry_encrypt_password.rmempty = false
+o_telemetry_encrypt_password.password = true
+o_telemetry_encrypt_password:depends("encrypt_enable", 1)
+
 
 --[[
 -- wbc.uplink: Uplink settings
