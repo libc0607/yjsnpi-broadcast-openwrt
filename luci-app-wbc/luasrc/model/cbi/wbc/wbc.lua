@@ -200,8 +200,8 @@ o_video_mcs:depends("wifimode", 1)
 --o_video_mcs:depends("wifimode", 2)
 -- wbc.video.rxbuf: RX Buf Size
 o_video_rxbuf = s_video:option(Value, "rxbuf", translate("RX Buf Size"))
-o_video_rxbuf.default = 1
-o_video_rxbuf.placeholder = 1
+o_video_rxbuf.default = 0
+o_video_rxbuf.placeholder = 0
 o_video_rxbuf.datatype = "range(0,32)"
 o_video_rxbuf:depends("mode", "rx")
 -- wbc.video.fps: Video FPS
