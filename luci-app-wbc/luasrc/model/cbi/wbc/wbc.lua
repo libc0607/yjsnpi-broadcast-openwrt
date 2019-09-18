@@ -509,6 +509,31 @@ o_uplink_rproto.default = 0
 o_uplink_rproto:depends("mode", "rx")
 ]]
 
+-- wbc.rc: R/C settings
+s_rc = m:section(TypedSection, "rc", translate("R/C Settings"))
+s_rc.anonymous = true
+s_rc.addremove = false
+-- wbc.rc.enable: R/C Enable
+o_rc_enable = s_rc:option(Flag, "enable", translate("Enable R/C"))
+o_rc_enable.rmempty = false
+-- wbc.rc.mode: R/C Transfer Mode
+o_rc_mode = s_rc:option(ListValue, "mode", translate("Transfer Mode"))
+o_rc_mode.rmempty = false
+o_rc_mode:value("tx", translate("Transceiver"))
+o_rc_mode:value("rx", translate("Receiver"))
+o_rc_mode.default = "tx"
+-- wbc.rc.uart: R/C UART Interface
+o_rc_uart = s_rc:option(ListValue, "uart", translate("R/C UART Interface"))
+for k,v in ipairs(tty_list) do 
+	o_rc_uart:value(v) 
+end
+o_rc_uart.default = "/dev/ttyUSB0"
+-- wbc.rc.proto: R/C TX Protocol
+o_rc_proto = s_uplink:option(ListValue, "proto", translate("R/C Protocol"))
+o_rc_proto:value(0, translate("S.BUS"))
+--o_rc_proto:value(1, translate("Generic"))
+o_rc_proto.default = 0
+
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
 	luci.sys.exec("/etc/init.d/ezwifibroadcast enable")
