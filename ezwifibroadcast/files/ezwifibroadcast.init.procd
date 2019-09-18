@@ -101,6 +101,8 @@ video_keyframerate=$(uci get wbc.video.keyframerate 2>/dev/null)
 video_extraparams=$(uci get wbc.video.extraparams 2>/dev/null)
 wifimode=$(uci get wbc.video.wifimode 2>/dev/null)
 ldpc=$(uci get wbc.video.ldpc 2>/dev/null)
+encrypt=$(uci get wbc.video.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.video.password 2>/dev/null)
 
 [sysair_forward_in]
 udp_port=$(uci get wbc.video.sysair_forward_port 2>/dev/null)
@@ -126,10 +128,11 @@ bufsize=$(uci get wbc.video.rxbuf 2>/dev/null)
 nic=$(uci get wbc.nic.iface 2>/dev/null)
 udp_ip=$(uci get wbc.video.send_ip_port 2>/dev/null|cut -d ':' -f 1)
 udp_port=$(uci get wbc.video.send_ip_port 2>/dev/null|cut -d ':' -f 2)
-
 udp_bind_port=$RX_UDP_BIND_PORT
 recording=$(uci get wbc.video.save_enable 2>/dev/null)	
 recording_dir=$(uci get wbc.video.savepath 2>/dev/null)
+encrypt=$(uci get wbc.video.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.video.password 2>/dev/null)
 
 [video]
 mode=rx	
@@ -156,6 +159,26 @@ EOF
 udp_ip=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 1)
 udp_port=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 2)
 udp_bind_port=$RX_RSSI_UDP_BIND_PORT
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+encrypt=$(uci get wbc.rssi.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.rssi.password 2>/dev/null)
+
+[rssi_in]
+mode=rx
+udp_port=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 2)
+
+EOF
+			echo "" >> $WBC_INI_FILE
+		fi
+		if [ "$(uci get wbc.rssi.mode 2>/dev/null)" = "tx" ]; then
+			cat >> $WBC_INI_FILE <<EOF
+[rssitx]
+udp_ip=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 1)
+udp_port=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 2)
+udp_bind_port=$RX_RSSI_UDP_BIND_PORT
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+encrypt=$(uci get wbc.rssi.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.rssi.password 2>/dev/null)
 
 [rssi_in]
 mode=rx
@@ -179,6 +202,8 @@ udp_port=$(uci get wbc.telemetry.send_ip_port 2>/dev/null |cut -d ':' -f 2)
 udp_bind_port=$RX_TELE_UDP_BIND_PORT
 recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
 recording_dir=$(uci get wbc.telemetry.savepath 2>/dev/null)
+encrypt=$(uci get wbc.telemetry.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.telemetry.password 2>/dev/null)
 
 EOF
 			echo "" >> $WBC_INI_FILE
@@ -200,8 +225,19 @@ mode=0
 nic=$(uci get wbc.nic.iface 2>/dev/null)
 wifimode=$(uci get wbc.telemetry.wifimode 2>/dev/null)
 ldpc=$(uci get wbc.telemetry.ldpc 2>/dev/null)
+encrypt=$(uci get wbc.telemetry.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.telemetry.password 2>/dev/null)
 EOF
 			echo "" >> $WBC_INI_FILE
+		fi
+	fi
+	
+	if [ $(uci get wbc.rc.enable 2>/dev/null) -eq 1 ]; then
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "tx" ]; then
+		# wip
+		fi
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "rx" ]; then
+		
 		fi
 	fi
 }
