@@ -378,6 +378,32 @@ telemetry_rx_instance() {
 	procd_close_instance
 }
 
+rc_tx_instance() {
+	if [ "$(uci get wbc.rc.proto 2>/dev/null)" = "sbus" ]; then
+		/usr/sbin/setsbus $(uci get wbc.rc.uart 2>/dev/null)
+		procd_open_instance "rc_tx"
+		procd_set_param command /usr/sbin/tx_rc_sbus 
+		procd_set_param stdout 1
+		procd_set_param stderr 1
+		procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
+		procd_set_param pidfile /var/run/wbc/rc_tx.pid
+		procd_close_instance
+	fi
+}
+
+rc_rx_instance() {
+	if [ "$(uci get wbc.rc.proto 2>/dev/null)" = "sbus" ]; then
+		/usr/sbin/setsbus $(uci get wbc.rc.uart 2>/dev/null)
+		procd_open_instance "rc_rx"
+		procd_set_param command /usr/sbin/rx_rc_sbus 
+		procd_set_param stdout 1
+		procd_set_param stderr 1
+		procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
+		procd_set_param pidfile /var/run/wbc/rc_rx.pid
+		procd_close_instance
+	fi
+}
+
 start_video() {
 	# 1. Video TX/RX Instance
 	if [ $(uci get wbc.video.enable 2>/dev/null) -eq 1 ]; then
@@ -422,6 +448,21 @@ start_telemetry() {
 	fi
 }
 
+start_rc() {
+	if [ $(uci get wbc.rc.enable 2>/dev/null) -eq 1 ]; then
+		echo "YJSNPI-Broadcast: R/C Enabled."
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "rx" ]; then
+			 rc_rx_instance
+			echo "    R/C RX Mode on $(uci get wbc.rc.uart 2>/dev/null)..."
+		fi
+
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "tx" ]; then 
+			rc_tx_instance
+			echo "	R/C TX Mode on $(uci get wbc.rc.uart 2>/dev/null)..."
+		fi
+	fi
+}
+
 start_service() {
 	if [ $(uci get wbc.wbc.enable 2>/dev/null) -eq 0 ]; then 
 		exit
@@ -430,6 +471,7 @@ start_service() {
 	start_video
 	start_telemetry
 	start_rssi
+#	start_rc
 	echo `date '+%s'` >/var/run/wbc/restart_timestamp
 #	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum
 }
