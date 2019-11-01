@@ -46,7 +46,6 @@ o_wbc_confpath = s_wbc:option(Value, "confpath", translate("Config file on HTTP"
 o_wbc_confpath.default = '/wbc-config.ini'
 o_wbc_confpath:depends("enable", 1)
 
-
 -- wbc.nic: Wi-Fi settings
 s_nic = m:section(TypedSection, "nic", translate("Wi-Fi Settings"))
 s_nic.anonymous = true
@@ -601,23 +600,119 @@ s_rc.addremove = false
 -- wbc.rc.enable: R/C Enable
 o_rc_enable = s_rc:option(Flag, "enable", translate("Enable R/C"))
 o_rc_enable.rmempty = false
--- wbc.rc.mode: R/C Transfer Mode
-o_rc_mode = s_rc:option(ListValue, "mode", translate("Transfer Mode"))
+-- wbc.rc.mode: R/C Mode
+-- depends on: wbc.rc.enable
+o_rc_mode = s_rc:option(ListValue, "mode", translate("Mode"))
 o_rc_mode.rmempty = false
 o_rc_mode:value("tx", translate("Transceiver"))
 o_rc_mode:value("rx", translate("Receiver"))
 o_rc_mode.default = "tx"
+o_rc_mode:depends("enable", 1)
 -- wbc.rc.uart: R/C UART Interface
+-- depends on: wbc.rc.enable
 o_rc_uart = s_rc:option(ListValue, "uart", translate("R/C UART Interface"))
 for k,v in ipairs(tty_list) do 
 	o_rc_uart:value(v) 
 end
 o_rc_uart.default = "/dev/ttyUSB0"
+o_rc_uart:depends("enable", 1)
 -- wbc.rc.proto: R/C TX Protocol
-o_rc_proto = s_uplink:option(ListValue, "proto", translate("R/C Protocol"))
+-- depends on: wbc.rc.enable
+o_rc_proto = s_rc:option(ListValue, "proto", translate("R/C Protocol"))
 o_rc_proto:value("sbus", translate("S.BUS"))
---o_rc_proto:value(1, translate("Generic"))
+o_rc_proto:value("raw", translate("Raw Data"))
 o_rc_proto.default = 0
+o_rc_proto:depends("enable", 1)
+-- wbc.rc.encrypt_enable: R/C Encrypt Enable
+o_rc_encrypt_enable = s_rc:option(Flag, "encrypt_enable", translate("Encrypt"))
+o_rc_encrypt_enable.rmempty = false
+o_rc_encrypt_enable:depends("enable", 1)
+-- wbc.rc.password: Encrypt Password
+o_rc_encrypt_password = s_rc:option(Value, "encrypt_password", translate("Password"))
+o_rc_encrypt_password.rmempty = false
+o_rc_encrypt_password.password = true
+o_rc_encrypt_password:depends("encrypt_enable", 1)
+-- wbc.rc.transmode: R/C Transfer Mode
+-- depends on: wbc.rc.enable
+o_rc_transmode = s_rc:option(ListValue, "transmode", translate("Transfer Mode"))
+o_rc_transmode.rmempty = true
+o_rc_transmode:value(0, translate("Send packet to air via Wi-Fi card"))
+o_rc_transmode:value(1, translate("Send packet to UDP (For 4G LTE)"))
+o_rc_transmode:value(2, translate("Send packet to both Wi-Fi & UDP"))
+o_rc_transmode.default = 0
+o_rc_transmode:depends("mode", "tx")
+-- wbc.rc.recvmode: R/C Receive Mode
+-- depends on: wbc.rc.enable
+o_rc_recvmode = s_rc:option(ListValue, "recvmode", translate("Receive Mode"))
+o_rc_recvmode.rmempty = true
+o_rc_recvmode:value(0, translate("Get packet from Wi-Fi card"))
+o_rc_recvmode:value(1, translate("Get packet from UDP (For 4G LTE)"))
+o_rc_recvmode:value(2, translate("Get packet from both Wi-Fi & UDP"))
+o_rc_recvmode.default = 0
+o_rc_recvmode:depends("mode", "rx")
+
+
+
+-- wbc.rc.udp_ip_port: R/C Data send to IP:Port (for tx udp mode)
+-- wbc.rc.listen_port: get data from localhost:port (for rx udp mode)
+
+
+-- wbc.rc.wifimode: Wi-Fi mode (802.11g / 802.11n)
+o_rc_wifimode = s_rc:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
+o_rc_wifimode:value(0, "802.11abg")
+o_rc_wifimode:value(1, "802.11n (MCS)")
+o_rc_wifimode.default = 0
+o_rc_wifimode:depends("transmode", 0)
+o_rc_wifimode:depends("transmode", 2)
+-- wbc.rc.bitrate: R/C TX Bit Rate (802.11abg)
+o_rc_bitrate = s_rc:option(ListValue, "bitrate", translate("R/C TX Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz."))
+o_rc_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
+o_rc_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
+o_rc_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
+o_rc_bitrate:value(11, "11 Mbps (802.11b, CCK)")
+o_rc_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
+o_rc_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
+o_rc_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
+o_rc_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
+o_rc_bitrate:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
+o_rc_bitrate:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
+o_rc_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
+o_rc_bitrate.default = 6
+o_rc_bitrate:depends("wifimode", 0)
+-- wbc.rc.mcs: MCS index (802.11n)
+o_rc_mcs = s_rc:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
+o_rc_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
+o_rc_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
+o_rc_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
+o_rc_mcs:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
+o_rc_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
+o_rc_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
+o_rc_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
+o_rc_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
+o_rc_mcs:depends("wifimode", 1)
+-- wbc.rc.ldpc: LDPC encode (for 802.11n/802.11ac)
+o_rc_ldpc = s_rc:option(Flag, "ldpc", translate("LDPC encode enable"), translate("Make sure that LDPC is supported by both tx & rx Wi-Fi card"))
+o_rc_ldpc.default = 0
+o_rc_ldpc:depends("wifimode", "1")
+-- wbc.rc.stbc: STBC encode (for 802.11n/802.11ac)
+o_rc_stbc = s_rc:option(ListValue, "stbc", translate("STBC encode enable"), translate("Make sure that STBC is supported by both tx & rx Wi-Fi card"))
+o_rc_stbc.default = 0
+o_rc_stbc:depends("wifimode", "1")
+o_rc_stbc:value(0, translate("Do not use"))
+o_rc_stbc:value(1, translate("1 Stream"))
+o_rc_stbc:value(2, translate("2 Streams"))
+o_rc_stbc:value(3, translate("3 Streams"))
+
+
+-- wbc.rc.retrans: R/C TX Retransmission Count
+o_rc_retrans = s_rc:option(ListValue, "retrans", translate("R/C TX Retransmission Count"))
+o_rc_retrans:value(1, translate("Send each frame once"))
+o_rc_retrans:value(2, translate("Twice"))
+o_rc_retrans:value(3, translate("Three times"))
+o_rc_retrans.default = 2
+o_rc_retrans:depends("transmode", 0)
+o_rc_retrans:depends("transmode", 2)
+
 
 local apply = luci.http.formvalue("cbi.apply")
 if apply then
