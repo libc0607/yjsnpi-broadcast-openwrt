@@ -82,6 +82,7 @@ o_nic_txpower_custom.rmempty = false
 o_nic_txpower_bh = s_nic:option(ListValue, "txpower_bh", translate("High level TX Power for 802.11b."))
 o_nic_txpower_bh.rmempty = false
 o_nic_txpower_bh.datatype = "range(0,30)"
+o_nic_txpower_bh:depends("txpower_custom", 1)
 for i = 0, 30 do 
 	o_nic_txpower_bh:value(i, i.." dBm")
 end
@@ -92,6 +93,7 @@ o_nic_txpower_bl = s_nic:option(ListValue, "txpower_bl", translate("Low level TX
 								translate("This value should less than the high power of 802.11b above."))
 o_nic_txpower_bl.rmempty = false
 o_nic_txpower_bl.datatype = "range(0,30)"
+o_nic_txpower_bl:depends("txpower_custom", 1)
 for i = 0, 30 do 
 	o_nic_txpower_bl:value(i, i.." dBm")
 end
@@ -104,12 +106,14 @@ o_nic_txpower_bf:value(1,  "1 Mbps (802.11b, DSSS)")
 o_nic_txpower_bf:value(2,  "2 Mbps (802.11b, DSSS)")
 o_nic_txpower_bf:value(5,  "5.5 Mbps (802.11b, CCK)")
 o_nic_txpower_bf:value(11, "11 Mbps (802.11b, CCK)")
+o_nic_txpower_bf:depends("txpower_custom", 1)
 o_nic_txpower_bf.default = 1
 
 -- wbc.nic.txpower_gh: High level TX Power for 802.11g (ath9k only)
 o_nic_txpower_gh = s_nic:option(ListValue, "txpower_gh", translate("High level TX Power for 802.11g."))
 o_nic_txpower_gh.rmempty = false
 o_nic_txpower_gh.datatype = "range(0,30)"
+o_nic_txpower_gh:depends("txpower_custom", 1)
 for i = 0, 30 do 
 	o_nic_txpower_gh:value(i, i.." dBm")
 end
@@ -123,11 +127,13 @@ o_nic_txpower_gl.datatype = "range(0,30)"
 for i = 0, 30 do 
 	o_nic_txpower_gl:value(i, i.." dBm")
 end
+o_nic_txpower_gl:depends("txpower_custom", 1)
 o_nic_txpower_gl.default = 10
 
 -- wbc.nic.txpower_gf: Set high TX power to the 802.11g rates less than or equal to this value: (ath9k only)
 o_nic_txpower_gf = s_nic:option(ListValue, "txpower_gf", translate("Set high TX power to the 802.11g rates less than or equal to this value"))
 o_nic_txpower_gf.rmempty = false
+o_nic_txpower_gf:depends("txpower_custom", 1)
 o_nic_txpower_gf:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
 o_nic_txpower_gf:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
 o_nic_txpower_gf:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
@@ -141,6 +147,7 @@ o_nic_txpower_gf.default = 6
 o_nic_txpower_nh = s_nic:option(ListValue, "txpower_nh", translate("High level TX Power for 802.11n."))
 o_nic_txpower_nh.rmempty = false
 o_nic_txpower_nh.datatype = "range(0,30)"
+o_nic_txpower_nh:depends("txpower_custom", 1)
 for i = 0, 30 do 
 	o_nic_txpower_nh:value(i, i.." dBm")
 end
@@ -151,6 +158,7 @@ o_nic_txpower_nl = s_nic:option(ListValue, "txpower_nl", translate("Low level TX
 								translate("This value should less than the high power of 802.11n above."))
 o_nic_txpower_nl.rmempty = false
 o_nic_txpower_nl.datatype = "range(0,30)"
+o_nic_txpower_nl:depends("txpower_custom", 1)
 for i = 0, 30 do 
 	o_nic_txpower_nl:value(i, i.." dBm")
 end
@@ -167,6 +175,7 @@ o_nic_txpower_nf:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
 o_nic_txpower_nf:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
 o_nic_txpower_nf:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
 o_nic_txpower_nf:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
+o_nic_txpower_nf:depends("txpower_custom", 1)
 o_nic_txpower_nf.default = 1
 
 
