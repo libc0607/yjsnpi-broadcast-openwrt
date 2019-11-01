@@ -40,14 +40,27 @@ int open_uart(dictionary* ini)
     struct termios options;
 	int param_baud, param_datab, param_stopb, param_pareb;
 	char * param_uart;
+	char error[1024];
 	
 	param_baud = iniparser_getint(ini, "PROGRAM_NAME:baud", 0);
 	param_datab = iniparser_getint(ini, "PROGRAM_NAME:datab", 0);
 	param_stopb = iniparser_getint(ini, "PROGRAM_NAME:stopb", 0);
 	param_pareb = iniparser_getint(ini, "PROGRAM_NAME:pareb", 0);
-	param_uart = (char *)iniparser_getstring(ini, "PROGRAM_NAME:uart", NULL)
-	
-    memset(&options, 0, sizeof(options));
+	param_uart = (char *)iniparser_getstring(ini, "PROGRAM_NAME:uart", NULL);
+
+	int fd = open(param_uart, O_RDWR | O_NOCTTY | O_NDELAY);
+    if(fd < 0)
+    {
+        sprintf(error, "<eth_uart> open('%s') failed!\n", param_uart);
+        goto err;
+    }
+    
+	// get exist option
+	memset(&options, 0, sizeof(options));
+	if (tcgetattr(fd, &options) != 0) {  
+		printf("tcgetattr() failed. Use new options.\n");
+		memset(&options, 0, sizeof(options));
+	}
 	
 	switch (param_baud) {
 	case 2400: 
@@ -86,10 +99,18 @@ int open_uart(dictionary* ini)
 		cfsetispeed(&options, B460800);
 		cfsetospeed(&options, B460800);
 		break;
+	case 576000: 
+		cfsetispeed(&options, B576000);
+		cfsetospeed(&options, B576000);
+		break;
+	case 921600: 
+		cfsetispeed(&options, B921600);
+		cfsetospeed(&options, B921600);
+		break;	
 	default:
-		printf("<eth_uart> uart baud rate %d not supported - use 9600 instead. \n", param_baud);
-		cfsetispeed(&options, B9600);
-		cfsetospeed(&options, B9600);
+		printf("<eth_uart> uart baud rate %d not supported - do not set. \n", param_baud);
+	//	cfsetispeed(&options, B9600);
+	//	cfsetospeed(&options, B9600);
 		break;
 	}
 
@@ -107,8 +128,8 @@ int open_uart(dictionary* ini)
 		options.c_cflag |= CS8;
 		break;
 	default: 
-		printf("<eth_uart> uart data bits %d not supported - use 8 bits instead. \n", param_datab);
-		options.c_cflag |= CS8;
+		printf("<eth_uart> uart data bits %d not supported - do not set. \n", param_datab);
+		//options.c_cflag |= CS8;
 		break;
 	}
    
@@ -120,8 +141,8 @@ int open_uart(dictionary* ini)
 		options.c_cflag |= CSTOPB;
 		break;
 	default:
-		printf("<eth_uart> uart stop bits %d not supported - use 1 bit instead. \n", param_stopb);
-		options.c_cflag &= ~CSTOPB;
+		printf("<eth_uart> uart stop bits %d not supported - do not set. \n", param_stopb);
+		//options.c_cflag &= ~CSTOPB;
 		break;
 	}
 	
@@ -143,21 +164,14 @@ int open_uart(dictionary* ini)
 		options.c_cflag &= ~PARODD; 
 	default:
 		// none		
-		printf("<eth_uart> uart parity bits %d not supported - use none instead. \n", param_pareb);
-		options.c_cflag &= ~PARENB;
+		printf("<eth_uart> uart parity bits %d not supported - do not set. \n", param_pareb);
+		//options.c_cflag &= ~PARENB;
 		break;
 	}
 	
 	options.c_cc[VTIME] = 0;
 	options.c_cc[VMIN] = 1;
-	char error[1024];
 	
-    int fd = open(param_uart, O_RDWR | O_NOCTTY | O_NDELAY);
-    if(fd < 0)
-    {
-        sprintf(error, "<eth_uart> open('%s') failed!\n", param_uart);
-        goto err;
-    }
     if(tcsetattr(fd, TCSANOW, &options) != 0)
     {
         strcpy(error, "<eth_uart> tcsetattr() failed!\n");
@@ -366,7 +380,7 @@ void usage()
 	exit(0);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     int fds[2];
 	char *file = argv[1];
