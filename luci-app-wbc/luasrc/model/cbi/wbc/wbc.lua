@@ -46,6 +46,7 @@ o_wbc_confpath = s_wbc:option(Value, "confpath", translate("Config file on HTTP"
 o_wbc_confpath.default = '/wbc-config.ini'
 o_wbc_confpath:depends("enable", 1)
 
+
 -- wbc.nic: Wi-Fi settings
 s_nic = m:section(TypedSection, "nic", translate("Wi-Fi Settings"))
 s_nic.anonymous = true
@@ -72,32 +73,102 @@ o_nic_chanbw:value(10, "10 MHz")
 o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
 
--- wbc.nic.txpower: TX Power (ath9k only)
-o_nic_txpower = s_nic:option(ListValue, "txpower", translate("TX Power (ath9k only)"), 
-			translate("Note: ath9k only; Too high will cause high EVM and/or burn your card! 1/2 dBm unit in /etc/config/"))
-o_nic_txpower.rmempty = false
-o_nic_txpower.datatype = "range(0,62)"
-o_nic_txpower:value(2,   "1  dBm")
-o_nic_txpower:value(8,   "4  dBm")
-o_nic_txpower:value(14,  "7  dBm")
-o_nic_txpower:value(20,  "10 dBm")
-o_nic_txpower:value(26,  "13 dBm")
-o_nic_txpower:value(32,  "16 dBm")
-o_nic_txpower:value(34,  "17 dBm")
-o_nic_txpower:value(36,  "18 dBm")
-o_nic_txpower:value(38,  "19 dBm")
-o_nic_txpower:value(40,  "20 dBm")
-o_nic_txpower:value(42,  "21 dBm")
-o_nic_txpower:value(44,  "22 dBm")
-o_nic_txpower:value(46,  "23 dBm")
-o_nic_txpower:value(48,  "24 dBm")
-o_nic_txpower:value(50,  "25 dBm")
-o_nic_txpower:value(52,  "26 dBm")
-o_nic_txpower:value(54,  "27 dBm")
-o_nic_txpower:value(56,  "28 dBm")
-o_nic_txpower:value(58,  "29 dBm")
-o_nic_txpower:value(60,  "30 dBm")
-o_nic_txpower.default = 40
+-- wbc.nic.txpower_custom: Use Custom TX Power
+o_nic_txpower_custom = s_nic:option(Flag, "txpower_custom", translate("Use Custom TX Power (ath9k only)"), 
+									translate("Note: ath9k only; Too high will cause high EVM and/or burn your card. "))
+o_nic_txpower_custom.rmempty = false
+
+-- wbc.nic.txpower_bh: High level TX Power for 802.11b (ath9k only)
+o_nic_txpower_bh = s_nic:option(ListValue, "txpower_bh", translate("High level TX Power for 802.11b."))
+o_nic_txpower_bh.rmempty = false
+o_nic_txpower_bh.datatype = "range(0,30)"
+for i = 0, 30 do 
+	o_nic_txpower_bh:value(i, i.." dBm")
+end
+o_nic_txpower_bh.default = 20
+
+-- wbc.nic.txpower_bl: Low level TX Power for 802.11b (ath9k only)
+o_nic_txpower_bl = s_nic:option(ListValue, "txpower_bl", translate("Low level TX Power for 802.11b"), 
+								translate("This value should less than the high power of 802.11b above."))
+o_nic_txpower_bl.rmempty = false
+o_nic_txpower_bl.datatype = "range(0,30)"
+for i = 0, 30 do 
+	o_nic_txpower_bl:value(i, i.." dBm")
+end
+o_nic_txpower_bl.default = 10
+
+-- wbc.nic.txpower_bf: Set high TX power to the 802.11b rates less than or equal to this value: (ath9k only)
+o_nic_txpower_bf = s_nic:option(ListValue, "txpower_bf", translate("Set high TX power to the 802.11b rates less than or equal to this value"))
+o_nic_txpower_bf.rmempty = false
+o_nic_txpower_bf:value(1,  "1 Mbps (802.11b, DSSS)")
+o_nic_txpower_bf:value(2,  "2 Mbps (802.11b, DSSS)")
+o_nic_txpower_bf:value(5,  "5.5 Mbps (802.11b, CCK)")
+o_nic_txpower_bf:value(11, "11 Mbps (802.11b, CCK)")
+o_nic_txpower_bf.default = 1
+
+-- wbc.nic.txpower_gh: High level TX Power for 802.11g (ath9k only)
+o_nic_txpower_gh = s_nic:option(ListValue, "txpower_gh", translate("High level TX Power for 802.11g."))
+o_nic_txpower_gh.rmempty = false
+o_nic_txpower_gh.datatype = "range(0,30)"
+for i = 0, 30 do 
+	o_nic_txpower_gh:value(i, i.." dBm")
+end
+o_nic_txpower_gh.default = 20
+
+-- wbc.nic.txpower_gl: Low level TX Power for 802.11g (ath9k only)
+o_nic_txpower_gl = s_nic:option(ListValue, "txpower_gl", translate("Low level TX Power for 802.11g"), 
+								translate("This value should less than the high power of 802.11g above."))
+o_nic_txpower_gl.rmempty = false
+o_nic_txpower_gl.datatype = "range(0,30)"
+for i = 0, 30 do 
+	o_nic_txpower_gl:value(i, i.." dBm")
+end
+o_nic_txpower_gl.default = 10
+
+-- wbc.nic.txpower_gf: Set high TX power to the 802.11g rates less than or equal to this value: (ath9k only)
+o_nic_txpower_gf = s_nic:option(ListValue, "txpower_gf", translate("Set high TX power to the 802.11g rates less than or equal to this value"))
+o_nic_txpower_gf.rmempty = false
+o_nic_txpower_gf:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
+o_nic_txpower_gf:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
+o_nic_txpower_gf:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
+o_nic_txpower_gf:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
+o_nic_txpower_gf:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
+o_nic_txpower_gf:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
+o_nic_txpower_gf:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
+o_nic_txpower_gf.default = 6
+
+-- wbc.nic.txpower_nh: High level TX Power for 802.11n (ath9k only)
+o_nic_txpower_nh = s_nic:option(ListValue, "txpower_nh", translate("High level TX Power for 802.11n."))
+o_nic_txpower_nh.rmempty = false
+o_nic_txpower_nh.datatype = "range(0,30)"
+for i = 0, 30 do 
+	o_nic_txpower_nh:value(i, i.." dBm")
+end
+o_nic_txpower_nh.default = 20
+
+-- wbc.nic.txpower_nl: Low level TX Power for 802.11n (ath9k only)
+o_nic_txpower_nl = s_nic:option(ListValue, "txpower_nl", translate("Low level TX Power for 802.11n"), 
+								translate("This value should less than the high power of 802.11n above."))
+o_nic_txpower_nl.rmempty = false
+o_nic_txpower_nl.datatype = "range(0,30)"
+for i = 0, 30 do 
+	o_nic_txpower_nl:value(i, i.." dBm")
+end
+o_nic_txpower_nl.default = 10
+
+-- wbc.nic.txpower_nf: Set high TX power to the 802.11n rates less than or equal to this value: (ath9k only)
+o_nic_txpower_nf = s_nic:option(ListValue, "txpower_nf", translate("Set high TX power to the 802.11n rates less than or equal to this value"))
+o_nic_txpower_nf.rmempty = false
+o_nic_txpower_nf:value(0, "MCS 0 (6.5 Mbps,  1x1, BPSK, 1/2)")
+o_nic_txpower_nf:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
+o_nic_txpower_nf:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
+o_nic_txpower_nf:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
+o_nic_txpower_nf:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
+o_nic_txpower_nf:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
+o_nic_txpower_nf:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
+o_nic_txpower_nf:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
+o_nic_txpower_nf.default = 1
+
 
 -- wbc.video: Video transfer settings
 s_video = m:section(TypedSection, "video", translate("Video Transfer Settings"))
@@ -167,7 +238,7 @@ o_video_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
 o_video_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
 o_video_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
 o_video_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
---o_video_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
+o_video_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
 o_video_bitrate:value(11, "11 Mbps (802.11b, CCK)")
 o_video_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
 o_video_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
@@ -186,14 +257,6 @@ o_video_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
 o_video_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
 o_video_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
 o_video_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
-o_video_mcs:value(8, "MCS 8 (13.0 Mbps, 2x2, BPSK, 1/2)")
-o_video_mcs:value(9, "MCS 9 (26.0 Mbps, 2x2, QPSK, 1/2)")
-o_video_mcs:value(10, "MCS 10 (39.0 Mbps, 2x2, QPSK, 3/4)")
-o_video_mcs:value(11, "MCS 11 (52.0 Mbps, 2x2, 16-QAM, 1/2)")
-o_video_mcs:value(12, "MCS 12 (78.0 Mbps, 2x2, 16-QAM, 3/4)")
-o_video_mcs:value(13, "MCS 13 (104.0 Mbps, 2x2, 64-QAM, 2/3)")
-o_video_mcs:value(14, "MCS 14 (117.0 Mbps, 2x2, 64-QAM, 3/4)")
-o_video_mcs:value(15, "MCS 15 (130.0 Mbps, 2x2, 64-QAM, 5/6)")
 -- mcs 16~31 ignored
 o_video_mcs.default = 1
 o_video_mcs:depends("wifimode", 1)
@@ -365,6 +428,7 @@ o_telemetry_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
 o_telemetry_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
 o_telemetry_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
 o_telemetry_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
+o_telemetry_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
 o_telemetry_bitrate:value(11, "11 Mbps (802.11b, CCK)")
 o_telemetry_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
 o_telemetry_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
@@ -383,14 +447,6 @@ o_telemetry_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
 o_telemetry_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
 o_telemetry_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
 o_telemetry_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
-o_telemetry_mcs:value(8, "MCS 8 (13.0 Mbps, 2x2, BPSK, 1/2)")
-o_telemetry_mcs:value(9, "MCS 9 (26.0 Mbps, 2x2, QPSK, 1/2)")
-o_telemetry_mcs:value(10, "MCS 10 (39.0 Mbps, 2x2, QPSK, 3/4)")
-o_telemetry_mcs:value(11, "MCS 11 (52.0 Mbps, 2x2, 16-QAM, 1/2)")
-o_telemetry_mcs:value(12, "MCS 12 (78.0 Mbps, 2x2, 16-QAM, 3/4)")
-o_telemetry_mcs:value(13, "MCS 13 (104.0 Mbps, 2x2, 64-QAM, 2/3)")
-o_telemetry_mcs:value(14, "MCS 14 (117.0 Mbps, 2x2, 64-QAM, 3/4)")
-o_telemetry_mcs:value(15, "MCS 15 (130.0 Mbps, 2x2, 64-QAM, 5/6)")
 o_telemetry_mcs:depends("wifimode", 1)
 -- wbc.telemetry.wifimode: Wi-Fi mode (802.11g / 802.11n)
 o_telemetry_wifimode = s_telemetry:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
