@@ -40,7 +40,6 @@ init_nic() {
 	NIC=$(uci get wbc.nic.iface 2>/dev/null)
 	FREQ=$(uci get wbc.nic.freq 2>/dev/null)
 	CHANBW=$(uci get wbc.nic.chanbw 2>/dev/null)
-	TXPOWER=$(uci get wbc.nic.txpower 2>/dev/null)
 	PHY_NAME=$(iwinfo $NIC info|grep "PHY name"|cut -d ':' -f 3)
 	iw reg set CN					
 	ifconfig $NIC mtu 2304
@@ -55,20 +54,48 @@ init_nic() {
 	else
 		echo "    Init_NIC: $NIC on 5MHz/10MHz bandwidth is not supported. Use default instead."
 	fi
-	TXPOWER_PATH=$(find /sys/kernel/debug/ieee80211 -name txpower_man |grep $PHY_NAME)
-	if [ -f $TXPOWER_PATH ]; then
-		echo "    Init_NIC: $NIC maybe supports custom txpower settings."
-		echo $TXPOWER > $TXPOWER_PATH 
+	TXPOWER_CUSTOM_PATH=$(find /sys/kernel/debug/ieee80211 -name txpower_custom |grep $PHY_NAME)
+	if [ -f $TXPOWER_CUSTOM_PATH ]; then
+		echo "    Init_NIC: seems that $NIC supports custom txpower settings."
+		if [ $(uci get wbc.nic.txpcust 2>/dev/null) -eq 1 ]; then
+			# switch on custom power
+			echo "Init_NIC: custom txpower enabled."
+			echo "s:1:1:1" > $TXPOWER_CUSTOM_PATH
+			if [ "$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 1)" = "$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 1)" ]; then
+				# low & high using same b/g/n 
+				TXPOWER_CTRL_CHAR="$(uci get wbc.nic.txrl 2>/dev/null):$(uci get wbc.nic.txph 2>/dev/null):$(uci get wbc.nic.txpl 2>/dev/null)"
+				echo $TXPOWER_CTRL_CHAR > $TXPOWER_CUSTOM_PATH
+				echo "TX Power control: $TXPOWER_CTRL_CHAR"
+			else
+				# not same
+				TXPOWER_CTRL_CHAR="$(uci get wbc.nic.txrl 2>/dev/null):$(uci get wbc.nic.txph 2>/dev/null):$(uci get wbc.nic.txpl 2>/dev/null)"
+				echo $TXPOWER_CTRL_CHAR > $TXPOWER_CUSTOM_PATH
+				echo "TX Power control low rate: $TXPOWER_CTRL_CHAR"
+				TXPOWER_CTRL_CHAR="$(uci get wbc.nic.txrh 2>/dev/null):$(uci get wbc.nic.txpl 2>/dev/null):$(uci get wbc.nic.txpl 2>/dev/null)"
+				echo $TXPOWER_CTRL_CHAR > $TXPOWER_CUSTOM_PATH
+				echo "TX Power control high rate: $TXPOWER_CTRL_CHAR"
+			fi
+		else
+			# switch off custom power
+			echo "Init_NIC: custom txpower disabled."
+			echo "s:0:0:0" > $TXPOWER_CUSTOM_PATH
+		fi
+		if [ $(uci get wbc.nic.debug 2>/dev/null) -eq 1 ]; then
+			echo "d:1:1:1" > $TXPOWER_CUSTOM_PATH
+		else 
+			echo "d:0:0:0" > $TXPOWER_CUSTOM_PATH
+		fi
 	else
 		echo "    Init_NIC: $NIC not support custom txpower. Use default instead."
 	fi
+
 }
 gen_ini() {
 	# clean
 	mkdir -p /var/run/wbc
 	rm $WBC_INI_FILE >/dev/null 2>&1
 	touch $WBC_INI_FILE >/dev/null 2>&1
-	
+
 	cat >> $WBC_INI_FILE <<EOF
 # wbc config file. Auto generated. Do not edit. 
 
@@ -76,11 +103,31 @@ EOF
 
 	# 1. tx_rawsock/tx_measure 
 	if [ "$(uci get wbc.video.mode 2>/dev/null)" = "tx" ]; then
-		if [ $(uci get wbc.video.wifimode 2>/dev/null) -eq 0 ]; then 
-			VIDEO_WIFI_RATE=$(uci get wbc.video.bitrate 2>/dev/null)		
-		else
-			VIDEO_WIFI_RATE=$(uci get wbc.video.mcs 2>/dev/null)	
+		if [ "$(uci get wbc.video.ratelevel 2>/dev/null)" = "H" ]; then
+			VIDEO_LDPC=0
+			VIDEO_STBC=0
+			VIDEO_WIFIMODE=0
+			VIDEO_WIFIMODE_CHAR=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 1)
+			VIDEO_WIFI_RATE=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 2)
+			if [ "$VIDEO_WIFIMODE_CHAR" = "n" ]; then
+				VIDEO_WIFIMODE=1
+				VIDEO_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+				VIDEO_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+			fi
 		fi
+		if [ "$(uci get wbc.video.ratelevel 2>/dev/null)" = "L" ]; then 
+			VIDEO_LDPC=0
+			VIDEO_STBC=0
+			VIDEO_WIFIMODE=0
+			VIDEO_WIFIMODE_CHAR=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 1)
+			VIDEO_WIFI_RATE=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 2)
+			if [ "$VIDEO_WIFIMODE_CHAR" = "n" ]; then
+				VIDEO_WIFIMODE=1
+				VIDEO_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+				VIDEO_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+			fi
+		fi
+		
 		cat >> $WBC_INI_FILE <<EOF
 [tx]
 port=0
@@ -99,8 +146,9 @@ video_size=$(uci get wbc.video.imgsize 2>/dev/null)
 video_bitrate=1024000
 video_keyframerate=$(uci get wbc.video.keyframerate 2>/dev/null)
 video_extraparams=$(uci get wbc.video.extraparams 2>/dev/null)
-wifimode=$(uci get wbc.video.wifimode 2>/dev/null)
-ldpc=$(uci get wbc.video.ldpc 2>/dev/null)
+wifimode=$VIDEO_WIFIMODE
+ldpc=$VIDEO_LDPC
+stbc=$VIDEO_STBC
 encrypt=$(uci get wbc.video.encrypt_enable 2>/dev/null)
 password=$(uci get wbc.video.password 2>/dev/null)
 
@@ -171,6 +219,31 @@ EOF
 			echo "" >> $WBC_INI_FILE
 		fi
 		if [ "$(uci get wbc.rssi.mode 2>/dev/null)" = "tx" ]; then
+			if [ "$(uci get wbc.rssi.ratelevel 2>/dev/null)" = "H" ]; then
+				RSSI_LDPC=0
+				RSSI_STBC=0
+				RSSI_WIFIMODE=0
+				RSSI_WIFIMODE_CHAR=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 1)
+				RSSI_WIFI_RATE=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 2)
+				if [ "$RSSI_WIFIMODE_CHAR" = "n" ]; then
+					RSSI_WIFIMODE=1
+					RSSI_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+					RSSI_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+				fi
+			fi
+			if [ "$(uci get wbc.rssi.ratelevel 2>/dev/null)" = "L" ]; then
+				RSSI_LDPC=0
+				RSSI_STBC=0
+				RSSI_WIFIMODE=0
+				RSSI_WIFIMODE_CHAR=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 1)
+				RSSI_WIFI_RATE=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 2)
+				if [ "$RSSI_WIFIMODE_CHAR" = "n" ]; then
+					RSSI_WIFIMODE=1
+					RSSI_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+					RSSI_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+				fi
+			fi
+		
 			cat >> $WBC_INI_FILE <<EOF
 [rssitx]
 udp_ip=$(uci get wbc.rssi.send_ip_port 2>/dev/null|cut -d ':' -f 1)
@@ -179,6 +252,11 @@ udp_bind_port=$RX_RSSI_UDP_BIND_PORT
 nic=$(uci get wbc.nic.iface 2>/dev/null)
 encrypt=$(uci get wbc.rssi.encrypt_enable 2>/dev/null)
 password=$(uci get wbc.rssi.password 2>/dev/null)
+ldpc=$RSSI_LDPC
+stbc=$RSSI_STBC
+rate=$RSSI_WIFI_RATE
+wifimode=$RSSI_WIFIMODE
+rssifreq=$(uci get wbc.rssi.rssifreq 2>/dev/null)
 
 [rssi_in]
 mode=rx
@@ -209,11 +287,31 @@ EOF
 			echo "" >> $WBC_INI_FILE
 		fi
 		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "tx" ]; then 
-			if [ $(uci get wbc.telemetry.wifimode 2>/dev/null) -eq 0 ]; then 
-				TELE_WIFI_RATE=$(uci get wbc.telemetry.bitrate 2>/dev/null)		
-			else
-				TELE_WIFI_RATE=$(uci get wbc.telemetry.mcs 2>/dev/null)	
+			if [ "$(uci get wbc.telemetry.ratelevel 2>/dev/null)" = "H" ]; then
+				TELE_LDPC=0
+				TELE_STBC=0
+				TELE_WIFIMODE=0
+				TELE_WIFIMODE_CHAR=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 1)
+				TELE_WIFI_RATE=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 2)
+				if [ "$TELE_WIFIMODE_CHAR" = "n" ]; then
+					TELE_WIFIMODE=1
+					TELE_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+					TELE_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+				fi
 			fi
+			if [ "$(uci get wbc.telemetry.ratelevel 2>/dev/null)" = "L" ]; then
+				TELE_LDPC=0
+				TELE_STBC=0
+				TELE_WIFIMODE=0
+				TELE_WIFIMODE_CHAR=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 1)
+				TELE_WIFI_RATE=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 2)
+				if [ "$TELE_WIFIMODE_CHAR" = "n" ]; then
+					TELE_WIFIMODE=1
+					TELE_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+					TELE_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+				fi
+			fi
+			
 			cat >> $WBC_INI_FILE <<EOF
 [tx_telemetry]
 cts_protection=$(uci get wbc.telemetry.cts 2>/dev/null)
@@ -223,8 +321,9 @@ tele_protocol=$(uci get wbc.telemetry.proto 2>/dev/null)
 rate=$TELE_WIFI_RATE
 mode=0
 nic=$(uci get wbc.nic.iface 2>/dev/null)
-wifimode=$(uci get wbc.telemetry.wifimode 2>/dev/null)
-ldpc=$(uci get wbc.telemetry.ldpc 2>/dev/null)
+wifimode=$TELE_WIFIMODE
+ldpc=$TELE_LDPC
+stbc=$TELE_STBC
 encrypt=$(uci get wbc.telemetry.encrypt_enable 2>/dev/null)
 password=$(uci get wbc.telemetry.password 2>/dev/null)
 EOF
