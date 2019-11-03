@@ -71,112 +71,66 @@ o_nic_chanbw:value(5,  "5 MHz")
 o_nic_chanbw:value(10, "10 MHz")
 o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
-
--- wbc.nic.txpower_custom: Use Custom TX Power
-o_nic_txpower_custom = s_nic:option(Flag, "txpower_custom", translate("Use Custom TX Power (ath9k only)"), 
+-- wbc.nic.txpcust: Use Custom TX Power
+o_nic_txpcust = s_nic:option(Flag, "txpcust", translate("Use Custom TX Power (ath9k only)"), 
 									translate("Note: ath9k only; Too high will cause high EVM and/or burn your card. "))
-o_nic_txpower_custom.rmempty = false
-
--- wbc.nic.txpower_bh: High level TX Power for 802.11b (ath9k only)
-o_nic_txpower_bh = s_nic:option(ListValue, "txpower_bh", translate("High level TX Power for 802.11b."))
-o_nic_txpower_bh.rmempty = false
-o_nic_txpower_bh.datatype = "range(0,30)"
-o_nic_txpower_bh:depends("txpower_custom", 1)
-for i = 0, 30 do 
-	o_nic_txpower_bh:value(i, i.." dBm")
+o_nic_txpcust.rmempty = false
+-- wbc.nic.txph: High rate level TX Power (ath9k only)
+o_nic_txph = s_nic:option(ListValue, "txph", translate("High rate level TX Power"))
+o_nic_txph.rmempty = false
+o_nic_txph.datatype = "range(0,30)"
+o_nic_txph:depends("txpcust", 1)
+for i = 0, 30 do o_nic_txph:value(i, i.." dBm") end
+o_nic_txph.default = 20
+-- wbc.nic.txpl: Low rate level TX Power (ath9k only)
+o_nic_txpl = s_nic:option(ListValue, "txpl", translate("Low rate level TX Power"))
+o_nic_txpl.rmempty = false
+o_nic_txpl.datatype = "range(0,30)"
+o_nic_txpl:depends("txpcust", 1)
+for i = 0, 30 do o_nic_txpl:value(i, i.." dBm") end
+o_nic_txpl.default = 20
+-- wbc.nic.txrh: High rate level (ath9k only)
+o_nic_txrh = s_nic:option(ListValue, "txrh", translate("High rate level"))
+o_nic_txrh.default = "n:3"
+o_nic_txrh:value("b:5",  	"5.5 Mbps (802.11b, CCK)")
+o_nic_txrh:value("b:11", 	"11 Mbps (802.11b, CCK)")
+o_nic_txrh:value("g:6",     "6 Mbps (802.11g, BPSK, 1/2)")
+o_nic_txrh:value("g:9", 	"9 Mbps (802.11g, BPSK, 3/4)")
+o_nic_txrh:value("g:12", 	"12 Mbps (802.11g, QPSK, 1/2)")
+o_nic_txrh:value("g:18", 	"18 Mbps (802.11g, QPSK, 3/4)")
+o_nic_txrh:value("g:24", 	"24 Mbps (802.11g, 16-QAM, 1/2)")
+o_nic_txrh:value("g:36", 	"36 Mbps (802.11g, 16-QAM, 3/4)")
+o_nic_txrh:value("n:0", 	"MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
+o_nic_txrh:value("n:1", 	"MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
+o_nic_txrh:value("n:2", 	"MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
+o_nic_txrh:value("n:3", 	"MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
+o_nic_txrh:value("n:4", 	"MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
+-- wbc.nic.txrl: Low rate level (ath9k only)
+o_nic_txrl = s_nic:option(ListValue, "txrl", translate("Low rate level"))
+o_nic_txrl.default = "n:0"
+o_nic_txrl:value("b:1",  	"1 Mbps (802.11b, DSSS)")
+o_nic_txrl:value("b:2",  	"2 Mbps (802.11b, DSSS)")
+o_nic_txrl:value("b:5",  	"5.5 Mbps (802.11b, CCK)")
+o_nic_txrl:value("b:11", 	"11 Mbps (802.11b, CCK)")
+o_nic_txrl:value("g:6",     "6 Mbps (802.11g, BPSK, 1/2)")
+o_nic_txrl:value("g:9", 	"9 Mbps (802.11g, BPSK, 3/4)")
+o_nic_txrl:value("g:12", 	"12 Mbps (802.11g, QPSK, 1/2)")
+o_nic_txrl:value("n:0", 	"MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
+o_nic_txrl:value("n:1", 	"MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
+-- wbc.nic.ldpc: enable LDPC of 802.11n rate
+o_nic_ldpc = s_nic:option(Flag, "ldpc", translate("enable LDPC of 802.11n rate"), 
+									translate("Make sure both TX & RX support it."))
+o_nic_ldpc.rmempty = false
+-- wbc.nic.stbc: enable STBC of 802.11n rate
+o_nic_stbc = s_nic:option(Flag, "stbc", translate("enable STBC of 802.11n rate"), 
+									translate("Make sure both TX & RX support it."))
+o_nic_stbc.rmempty = false
+for i=0,7 do 
+	o_nic_ldpc:depends("txrh", "n:"..i)
+	o_nic_ldpc:depends("txrl", "n:"..i)
+	o_nic_stbc:depends("txrh", "n:"..i)
+	o_nic_stbc:depends("txrl", "n:"..i)
 end
-o_nic_txpower_bh.default = 20
-
--- wbc.nic.txpower_bl: Low level TX Power for 802.11b (ath9k only)
-o_nic_txpower_bl = s_nic:option(ListValue, "txpower_bl", translate("Low level TX Power for 802.11b"), 
-								translate("This value should less than the high power of 802.11b above."))
-o_nic_txpower_bl.rmempty = false
-o_nic_txpower_bl.datatype = "range(0,30)"
-o_nic_txpower_bl:depends("txpower_custom", 1)
-for i = 0, 30 do 
-	o_nic_txpower_bl:value(i, i.." dBm")
-end
-o_nic_txpower_bl.default = 10
-
--- wbc.nic.txpower_bf: Set high TX power to the 802.11b rates less than or equal to this value: (ath9k only)
-o_nic_txpower_bf = s_nic:option(ListValue, "txpower_bf", translate("Set high TX power to the 802.11b rates less than or equal to this value"))
-o_nic_txpower_bf.rmempty = false
-o_nic_txpower_bf:value(1,  "1 Mbps (802.11b, DSSS)")
-o_nic_txpower_bf:value(2,  "2 Mbps (802.11b, DSSS)")
-o_nic_txpower_bf:value(5,  "5.5 Mbps (802.11b, CCK)")
-o_nic_txpower_bf:value(11, "11 Mbps (802.11b, CCK)")
-o_nic_txpower_bf:depends("txpower_custom", 1)
-o_nic_txpower_bf.default = 1
-
--- wbc.nic.txpower_gh: High level TX Power for 802.11g (ath9k only)
-o_nic_txpower_gh = s_nic:option(ListValue, "txpower_gh", translate("High level TX Power for 802.11g."))
-o_nic_txpower_gh.rmempty = false
-o_nic_txpower_gh.datatype = "range(0,30)"
-o_nic_txpower_gh:depends("txpower_custom", 1)
-for i = 0, 30 do 
-	o_nic_txpower_gh:value(i, i.." dBm")
-end
-o_nic_txpower_gh.default = 20
-
--- wbc.nic.txpower_gl: Low level TX Power for 802.11g (ath9k only)
-o_nic_txpower_gl = s_nic:option(ListValue, "txpower_gl", translate("Low level TX Power for 802.11g"), 
-								translate("This value should less than the high power of 802.11g above."))
-o_nic_txpower_gl.rmempty = false
-o_nic_txpower_gl.datatype = "range(0,30)"
-for i = 0, 30 do 
-	o_nic_txpower_gl:value(i, i.." dBm")
-end
-o_nic_txpower_gl:depends("txpower_custom", 1)
-o_nic_txpower_gl.default = 10
-
--- wbc.nic.txpower_gf: Set high TX power to the 802.11g rates less than or equal to this value: (ath9k only)
-o_nic_txpower_gf = s_nic:option(ListValue, "txpower_gf", translate("Set high TX power to the 802.11g rates less than or equal to this value"))
-o_nic_txpower_gf.rmempty = false
-o_nic_txpower_gf:depends("txpower_custom", 1)
-o_nic_txpower_gf:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
-o_nic_txpower_gf:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
-o_nic_txpower_gf:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
-o_nic_txpower_gf:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
-o_nic_txpower_gf:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
-o_nic_txpower_gf:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
-o_nic_txpower_gf:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
-o_nic_txpower_gf.default = 6
-
--- wbc.nic.txpower_nh: High level TX Power for 802.11n (ath9k only)
-o_nic_txpower_nh = s_nic:option(ListValue, "txpower_nh", translate("High level TX Power for 802.11n."))
-o_nic_txpower_nh.rmempty = false
-o_nic_txpower_nh.datatype = "range(0,30)"
-o_nic_txpower_nh:depends("txpower_custom", 1)
-for i = 0, 30 do 
-	o_nic_txpower_nh:value(i, i.." dBm")
-end
-o_nic_txpower_nh.default = 20
-
--- wbc.nic.txpower_nl: Low level TX Power for 802.11n (ath9k only)
-o_nic_txpower_nl = s_nic:option(ListValue, "txpower_nl", translate("Low level TX Power for 802.11n"), 
-								translate("This value should less than the high power of 802.11n above."))
-o_nic_txpower_nl.rmempty = false
-o_nic_txpower_nl.datatype = "range(0,30)"
-o_nic_txpower_nl:depends("txpower_custom", 1)
-for i = 0, 30 do 
-	o_nic_txpower_nl:value(i, i.." dBm")
-end
-o_nic_txpower_nl.default = 10
-
--- wbc.nic.txpower_nf: Set high TX power to the 802.11n rates less than or equal to this value: (ath9k only)
-o_nic_txpower_nf = s_nic:option(ListValue, "txpower_nf", translate("Set high TX power to the 802.11n rates less than or equal to this value"))
-o_nic_txpower_nf.rmempty = false
-o_nic_txpower_nf:value(0, "MCS 0 (6.5 Mbps,  1x1, BPSK, 1/2)")
-o_nic_txpower_nf:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
-o_nic_txpower_nf:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
-o_nic_txpower_nf:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
-o_nic_txpower_nf:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
-o_nic_txpower_nf:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
-o_nic_txpower_nf:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
-o_nic_txpower_nf:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
-o_nic_txpower_nf:depends("txpower_custom", 1)
-o_nic_txpower_nf.default = 1
-
 
 -- wbc.video: Video transfer settings
 s_video = m:section(TypedSection, "video", translate("Video Transfer Settings"))
@@ -226,59 +180,7 @@ o_video_frametype:value(0, "DATA Short")
 o_video_frametype:value(1, "DATA Standard")
 o_video_frametype:value(2, "RTS")
 o_video_frametype.default = 0
--- wbc.video.wifimode: Wi-Fi mode (802.11g / 802.11n)
-o_video_wifimode = s_video:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
-o_video_wifimode:value(0, "802.11abg")
-o_video_wifimode:value(1, "802.11n (MCS)")
---o_video_wifimode:value(2, "802.11ac (VHT)")	-- 还没写
---o_video_wifimode:value(3, "802.11ax")			-- 有生之年
-o_video_wifimode.default = 0
-o_video_wifimode:depends("mode", "tx")
--- wbc.video.ldpc: LDPC encode (for 802.11n/802.11ac)
-o_video_ldpc = s_video:option(Flag, "ldpc", translate("LDPC encode enable"), translate("Make sure that LDPC is supported by both tx & rx Wi-Fi card"))
-o_video_ldpc.default = 0
-o_video_ldpc:depends("wifimode", "1")
-o_video_ldpc:depends("wifimode", "2")
-o_video_ldpc:depends("wifimode", "3")
--- wbc.video.stbc: STBC encode (for 802.11n/802.11ac)
-o_video_stbc = s_video:option(ListValue, "stbc", translate("STBC streams"), translate("Make sure that STBC is supported by both tx & rx Wi-Fi card"))
-o_video_stbc.default = 0
-o_video_stbc:value(0, translate("Do not use"))
-o_video_stbc:value(1, translate("1 Stream"))
-o_video_stbc:value(2, translate("2 Streams"))
-o_video_stbc:value(3, translate("3 Streams"))
-o_video_stbc:depends("wifimode", "1")
-o_video_stbc:depends("wifimode", "2")
-o_video_stbc:depends("wifimode", "3")
--- wbc.video.bitrate: Bit Rate (802.11abg)
-o_video_bitrate = s_video:option(ListValue, "bitrate", translate("Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. "))
-o_video_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
-o_video_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
-o_video_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
-o_video_bitrate:value(11, "11 Mbps (802.11b, CCK)")
-o_video_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
-o_video_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
-o_video_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
-o_video_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
-o_video_bitrate:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
-o_video_bitrate:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
-o_video_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
-o_video_bitrate.default = 12
-o_video_bitrate:depends("wifimode", 0)
--- wbc.video.mcs: MCS index (802.11n/ac)
-o_video_mcs = s_video:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
-o_video_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
-o_video_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
-o_video_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
-o_video_mcs:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
-o_video_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
-o_video_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
-o_video_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
-o_video_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
--- mcs 16~31 ignored
-o_video_mcs.default = 1
-o_video_mcs:depends("wifimode", 1)
---o_video_mcs:depends("wifimode", 2)
+
 -- wbc.video.rxbuf: RX Buf Size
 o_video_rxbuf = s_video:option(Value, "rxbuf", translate("RX Buf Size"))
 o_video_rxbuf.default = 0
@@ -363,6 +265,13 @@ o_video_encrypt_password = s_video:option(Value, "encrypt_password", translate("
 o_video_encrypt_password.rmempty = false
 o_video_encrypt_password.password = true
 o_video_encrypt_password:depends("encrypt_enable", 1)
+-- wbc.video.ratelevel: video transmission rate level
+o_video_ratelevel = s_video:option(ListValue, "ratelevel", translate("video transmission rate level"))
+o_video_ratelevel.rmempty = false
+o_video_ratelevel:value("H", translate("High rate (Low power)"))
+o_video_ratelevel:value("L", translate("Low rate (High power)"))
+o_video_ratelevel.default = "L"
+o_video_ratelevel:depends("mode", "tx")
 
 -- wbc.rssi: RSSI settings
 s_rssi = m:section(TypedSection, "rssi", translate("RSSI Settings"))
@@ -377,7 +286,7 @@ o_rssi_mode.rmempty = false
 o_rssi_mode:value("tx", translate("Transceiver"))
 o_rssi_mode:value("rx", translate("Receiver"))
 o_rssi_mode.default = "tx"
--- wbc.rssi.send_ip_port: RSSI RX Data Send to IP:Port	
+-- wbc.rssi.send_ip_port: RSSI RX Data Send to IP:Port	(rssi_forward/rssi_forward_in)
 o_rssi_send_ip_port = s_rssi:option(Value, "send_ip_port", translate("Send RSSI Data to IP:Port"))
 o_rssi_send_ip_port.datatype = "ipaddrport"
 o_rssi_send_ip_port:depends("mode", "rx")
@@ -389,7 +298,19 @@ o_rssi_encrypt_password = s_rssi:option(Value, "encrypt_password", translate("Pa
 o_rssi_encrypt_password.rmempty = false
 o_rssi_encrypt_password.password = true
 o_rssi_encrypt_password:depends("encrypt_enable", 1)
-
+-- wbc.rssi.rssifreq: RSSI refresh freq (Hz)
+o_rssi_rssifreq = s_rssi:option(Value, "rssifreq", translate("RSSI refresh freq (Hz)"))
+o_rssi_rssifreq.default = 3
+o_rssi_rssifreq.placeholder = 3
+o_rssi_rssifreq.datatype = "range(2,10)"
+o_rssi_rssifreq:depends("mode", "tx")
+-- wbc.rssi.ratelevel: RSSI transmission rate level
+o_rssi_ratelevel = s_rssi:option(ListValue, "ratelevel", translate("RSSI transmission rate level"))
+o_rssi_ratelevel.rmempty = false
+o_rssi_ratelevel:value("H", translate("High rate (Low power)"))
+o_rssi_ratelevel:value("L", translate("Low rate (High power)"))
+o_rssi_ratelevel.default = "L"
+o_rssi_ratelevel:depends("mode", "tx")
 
 -- wbc.telemetry: Telemetry settings
 s_telemetry = m:section(TypedSection, "telemetry", translate("Telemetry Settings"))
@@ -410,7 +331,6 @@ for k,v in ipairs(tty_list) do
 	o_telemetry_uart:value(v) 
 end
 o_telemetry_uart.default = "/dev/ttyUSB0"
-
 -- wbc.telemetry.baud: Telemetry UART Baud rate
 o_telemetry_baud = s_telemetry:option(ListValue, "baud", translate("Telemetry UART Baud Rate"))
 o_telemetry_baud:value(9600, "9600 bps")
@@ -440,54 +360,6 @@ o_telemetry_proto:value(0, translate("Mavlink"))
 o_telemetry_proto:value(1, translate("Generic"))
 o_telemetry_proto.default = 0
 o_telemetry_proto:depends("mode", "tx")
--- wbc.telemetry.bitrate: Telemetry TX Bit Rate (802.11abg)
-o_telemetry_bitrate = s_telemetry:option(ListValue, "bitrate", translate("Telemetry TX Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. "))
-o_telemetry_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
-o_telemetry_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
-o_telemetry_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
-o_telemetry_bitrate:value(11, "11 Mbps (802.11b, CCK)")
-o_telemetry_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
-o_telemetry_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
-o_telemetry_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
-o_telemetry_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
-o_telemetry_bitrate:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
-o_telemetry_bitrate:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
-o_telemetry_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
-o_telemetry_bitrate.default = 12
-o_telemetry_bitrate:depends("wifimode", 0)
--- wbc.telemetry.mcs: MCS index (802.11n/ac)
-o_telemetry_mcs = s_telemetry:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
-o_telemetry_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
-o_telemetry_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
-o_telemetry_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
-o_telemetry_mcs:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
-o_telemetry_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
-o_telemetry_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
-o_telemetry_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
-o_telemetry_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
-o_telemetry_mcs:depends("wifimode", 1)
--- wbc.telemetry.wifimode: Wi-Fi mode (802.11g / 802.11n)
-o_telemetry_wifimode = s_telemetry:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
-o_telemetry_wifimode:value(0, "802.11abg")
-o_telemetry_wifimode:value(1, "802.11n (MCS)")
-o_telemetry_wifimode.default = 0
-o_telemetry_wifimode:depends("mode", "tx")
--- wbc.telemetry.ldpc: LDPC encode (for 802.11n/802.11ac)
-o_telemetry_ldpc = s_telemetry:option(Flag, "ldpc", translate("LDPC encode enable"), translate("Make sure that LDPC is supported by both tx & rx Wi-Fi card"))
-o_telemetry_ldpc.default = 0
-o_telemetry_ldpc:depends("wifimode", "1")
-o_telemetry_ldpc:depends("wifimode", "2")
-o_telemetry_ldpc:depends("wifimode", "3")
--- wbc.telemetry.stbc: STBC encode (for 802.11n/802.11ac)
-o_telemery_stbc = s_telemetry:option(ListValue, "stbc", translate("STBC encode enable"), translate("Make sure that STBC is supported by both tx & rx Wi-Fi card"))
-o_telemery_stbc.default = 0
-o_telemery_stbc:depends("wifimode", "1")
-o_telemery_stbc:depends("wifimode", "2")
-o_telemery_stbc:depends("wifimode", "3")
-o_telemery_stbc:value(0, translate("Do not use"))
-o_telemery_stbc:value(1, translate("1 Stream"))
-o_telemery_stbc:value(2, translate("2 Streams"))
-o_telemery_stbc:value(3, translate("3 Streams"))
 -- wbc.telemetry.send_ip_port: Telemetry RX Send to IP:Port	
 o_telemetry_send_ip_port = s_telemetry:option(Value, "send_ip_port", translate("Send Telemetry Data to IP:Port"))
 o_telemetry_send_ip_port.datatype = "ipaddrport"
@@ -516,8 +388,99 @@ o_telemetry_encrypt_password = s_telemetry:option(Value, "encrypt_password", tra
 o_telemetry_encrypt_password.rmempty = false
 o_telemetry_encrypt_password.password = true
 o_telemetry_encrypt_password:depends("encrypt_enable", 1)
+-- wbc.telemetry.ratelevel: telemetry transmission rate level
+o_telemetry_ratelevel = s_telemetry:option(ListValue, "ratelevel", translate("telemetry transmission rate level"))
+o_telemetry_ratelevel.rmempty = false
+o_telemetry_ratelevel:value("H", translate("High rate (Low power)"))
+o_telemetry_ratelevel:value("L", translate("Low rate (High power)"))
+o_telemetry_ratelevel.default = "L"
+o_telemetry_ratelevel:depends("mode", "tx")
+
+-- wbc.rc: R/C settings
+s_rc = m:section(TypedSection, "rc", translate("R/C Settings"))
+s_rc.anonymous = true
+s_rc.addremove = false
+-- wbc.rc.enable: R/C Enable
+o_rc_enable = s_rc:option(Flag, "enable", translate("Enable R/C"))
+o_rc_enable.rmempty = false
+-- wbc.rc.mode: R/C Mode
+-- depends on: wbc.rc.enable
+o_rc_mode = s_rc:option(ListValue, "mode", translate("Mode"))
+o_rc_mode.rmempty = false
+o_rc_mode:value("tx", translate("Transceiver"))
+o_rc_mode:value("rx", translate("Receiver"))
+o_rc_mode.default = "tx"
+o_rc_mode:depends("enable", 1)
+-- wbc.rc.uart: R/C UART Interface
+-- depends on: wbc.rc.enable
+o_rc_uart = s_rc:option(ListValue, "uart", translate("R/C UART Interface"))
+for k,v in ipairs(tty_list) do 
+	o_rc_uart:value(v) 
+end
+o_rc_uart.default = "/dev/ttyUSB0"
+o_rc_uart:depends("enable", 1)
+-- wbc.rc.proto: R/C TX Protocol
+-- depends on: wbc.rc.enable
+o_rc_proto = s_rc:option(ListValue, "proto", translate("R/C Protocol"))
+o_rc_proto:value("sbus", translate("S.BUS"))
+o_rc_proto:value("raw", translate("Raw Data"))
+o_rc_proto.default = 0
+o_rc_proto:depends("enable", 1)
+-- wbc.rc.encrypt_enable: R/C Encrypt Enable
+o_rc_encrypt_enable = s_rc:option(Flag, "encrypt_enable", translate("Encrypt"))
+o_rc_encrypt_enable.rmempty = false
+o_rc_encrypt_enable:depends("enable", 1)
+-- wbc.rc.password: Encrypt Password
+o_rc_encrypt_password = s_rc:option(Value, "encrypt_password", translate("Password"))
+o_rc_encrypt_password.rmempty = false
+o_rc_encrypt_password.password = true
+o_rc_encrypt_password:depends("encrypt_enable", 1)
+-- wbc.rc.ratelevel: rc transmission rate level
+o_rc_ratelevel = s_rc:option(ListValue, "ratelevel", translate("rc transmission rate level"))
+o_rc_ratelevel.rmempty = false
+o_rc_ratelevel:value("H", translate("High rate (Low power)"))
+o_rc_ratelevel:value("L", translate("Low rate (High power)"))
+o_rc_ratelevel.default = "L"
+o_rc_ratelevel:depends("mode", "tx")
 
 
+
+
+local apply = luci.http.formvalue("cbi.apply")
+if apply then
+	luci.sys.exec("/etc/init.d/ezwifibroadcast enable")
+    luci.sys.exec("/etc/init.d/ezwifibroadcast restart")
+end
+
+return m
+
+
+--[[
+
+-- 4G will come, but not now
+
+-- wbc.rc.transmode: R/C Transfer Mode
+-- depends on: wbc.rc.enable
+o_rc_transmode = s_rc:option(ListValue, "transmode", translate("Transfer Mode"))
+o_rc_transmode.rmempty = true
+o_rc_transmode:value(0, translate("Send packet to air via Wi-Fi card"))
+o_rc_transmode:value(1, translate("Send packet to UDP (For 4G LTE)"))
+o_rc_transmode:value(2, translate("Send packet to both Wi-Fi & UDP"))
+o_rc_transmode.default = 0
+o_rc_transmode:depends("mode", "tx")
+-- wbc.rc.recvmode: R/C Receive Mode
+-- depends on: wbc.rc.enable
+o_rc_recvmode = s_rc:option(ListValue, "recvmode", translate("Receive Mode"))
+o_rc_recvmode.rmempty = true
+o_rc_recvmode:value(0, translate("Get packet from Wi-Fi card"))
+o_rc_recvmode:value(1, translate("Get packet from UDP (For 4G LTE)"))
+o_rc_recvmode:value(2, translate("Get packet from both Wi-Fi & UDP"))
+o_rc_recvmode.default = 0
+o_rc_recvmode:depends("mode", "rx")
+-- wbc.rc.udp_ip_port: R/C Data send to IP:Port (for tx udp mode)
+-- wbc.rc.listen_port: get data from localhost:port (for rx udp mode)
+
+]]
 --[[
 -- wbc.uplink: Uplink settings
 s_uplink = m:section(TypedSection, "uplink", translate("Uplink Settings"))
@@ -592,132 +555,3 @@ o_uplink_rproto:value(99, translate("disable R/C"))
 o_uplink_rproto.default = 0
 o_uplink_rproto:depends("mode", "rx")
 ]]
-
--- wbc.rc: R/C settings
-s_rc = m:section(TypedSection, "rc", translate("R/C Settings"))
-s_rc.anonymous = true
-s_rc.addremove = false
--- wbc.rc.enable: R/C Enable
-o_rc_enable = s_rc:option(Flag, "enable", translate("Enable R/C"))
-o_rc_enable.rmempty = false
--- wbc.rc.mode: R/C Mode
--- depends on: wbc.rc.enable
-o_rc_mode = s_rc:option(ListValue, "mode", translate("Mode"))
-o_rc_mode.rmempty = false
-o_rc_mode:value("tx", translate("Transceiver"))
-o_rc_mode:value("rx", translate("Receiver"))
-o_rc_mode.default = "tx"
-o_rc_mode:depends("enable", 1)
--- wbc.rc.uart: R/C UART Interface
--- depends on: wbc.rc.enable
-o_rc_uart = s_rc:option(ListValue, "uart", translate("R/C UART Interface"))
-for k,v in ipairs(tty_list) do 
-	o_rc_uart:value(v) 
-end
-o_rc_uart.default = "/dev/ttyUSB0"
-o_rc_uart:depends("enable", 1)
--- wbc.rc.proto: R/C TX Protocol
--- depends on: wbc.rc.enable
-o_rc_proto = s_rc:option(ListValue, "proto", translate("R/C Protocol"))
-o_rc_proto:value("sbus", translate("S.BUS"))
-o_rc_proto:value("raw", translate("Raw Data"))
-o_rc_proto.default = 0
-o_rc_proto:depends("enable", 1)
--- wbc.rc.encrypt_enable: R/C Encrypt Enable
-o_rc_encrypt_enable = s_rc:option(Flag, "encrypt_enable", translate("Encrypt"))
-o_rc_encrypt_enable.rmempty = false
-o_rc_encrypt_enable:depends("enable", 1)
--- wbc.rc.password: Encrypt Password
-o_rc_encrypt_password = s_rc:option(Value, "encrypt_password", translate("Password"))
-o_rc_encrypt_password.rmempty = false
-o_rc_encrypt_password.password = true
-o_rc_encrypt_password:depends("encrypt_enable", 1)
--- wbc.rc.transmode: R/C Transfer Mode
--- depends on: wbc.rc.enable
-o_rc_transmode = s_rc:option(ListValue, "transmode", translate("Transfer Mode"))
-o_rc_transmode.rmempty = true
-o_rc_transmode:value(0, translate("Send packet to air via Wi-Fi card"))
-o_rc_transmode:value(1, translate("Send packet to UDP (For 4G LTE)"))
-o_rc_transmode:value(2, translate("Send packet to both Wi-Fi & UDP"))
-o_rc_transmode.default = 0
-o_rc_transmode:depends("mode", "tx")
--- wbc.rc.recvmode: R/C Receive Mode
--- depends on: wbc.rc.enable
-o_rc_recvmode = s_rc:option(ListValue, "recvmode", translate("Receive Mode"))
-o_rc_recvmode.rmempty = true
-o_rc_recvmode:value(0, translate("Get packet from Wi-Fi card"))
-o_rc_recvmode:value(1, translate("Get packet from UDP (For 4G LTE)"))
-o_rc_recvmode:value(2, translate("Get packet from both Wi-Fi & UDP"))
-o_rc_recvmode.default = 0
-o_rc_recvmode:depends("mode", "rx")
-
-
-
--- wbc.rc.udp_ip_port: R/C Data send to IP:Port (for tx udp mode)
--- wbc.rc.listen_port: get data from localhost:port (for rx udp mode)
-
-
--- wbc.rc.wifimode: Wi-Fi mode (802.11g / 802.11n)
-o_rc_wifimode = s_rc:option(ListValue, "wifimode", translate("Wi-Fi Mode"))
-o_rc_wifimode:value(0, "802.11abg")
-o_rc_wifimode:value(1, "802.11n (MCS)")
-o_rc_wifimode.default = 0
-o_rc_wifimode:depends("transmode", 0)
-o_rc_wifimode:depends("transmode", 2)
--- wbc.rc.bitrate: R/C TX Bit Rate (802.11abg)
-o_rc_bitrate = s_rc:option(ListValue, "bitrate", translate("R/C TX Bit Rate (802.11b/g)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz."))
-o_rc_bitrate:value(1, "1 Mbps (802.11b, DSSS)")
-o_rc_bitrate:value(2, "2 Mbps (802.11b, DSSS)")
-o_rc_bitrate:value(5, "5.5 Mbps (802.11b, CCK)")
-o_rc_bitrate:value(11, "11 Mbps (802.11b, CCK)")
-o_rc_bitrate:value(6, "6 Mbps (802.11g, BPSK, 1/2)")
-o_rc_bitrate:value(9, "9 Mbps (802.11g, BPSK, 3/4)")
-o_rc_bitrate:value(12, "12 Mbps (802.11g, QPSK, 1/2)")
-o_rc_bitrate:value(18, "18 Mbps (802.11g, QPSK, 3/4)")
-o_rc_bitrate:value(24, "24 Mbps (802.11g, 16-QAM, 1/2)")
-o_rc_bitrate:value(36, "36 Mbps (802.11g, 16-QAM, 3/4)")
-o_rc_bitrate:value(48, "48 Mbps (802.11g, 64-QAM, 2/3)")
-o_rc_bitrate.default = 6
-o_rc_bitrate:depends("wifimode", 0)
--- wbc.rc.mcs: MCS index (802.11n)
-o_rc_mcs = s_rc:option(ListValue, "mcs", translate("MCS index (802.11n/ac)"), translate("Rate should divide by 2 when chanbw=10MHz; 4 for 5MHz. ")..translate("<br />In most cases you should choose MCS0~7."))
-o_rc_mcs:value(0, "MCS 0 (6.5 Mbps, 1x1, BPSK, 1/2)")
-o_rc_mcs:value(1, "MCS 1 (13.0 Mbps, 1x1, QPSK, 1/2)")
-o_rc_mcs:value(2, "MCS 2 (19.5 Mbps, 1x1, QPSK, 3/4)")
-o_rc_mcs:value(3, "MCS 3 (26.0 Mbps, 1x1, 16-QAM, 1/2)")
-o_rc_mcs:value(4, "MCS 4 (39.0 Mbps, 1x1, 16-QAM, 3/4)")
-o_rc_mcs:value(5, "MCS 5 (52.0 Mbps, 1x1, 64-QAM, 2/3)")
-o_rc_mcs:value(6, "MCS 6 (58.5 Mbps, 1x1, 64-QAM, 3/4)")
-o_rc_mcs:value(7, "MCS 7 (65.0 Mbps, 1x1, 64-QAM, 5/6)")
-o_rc_mcs:depends("wifimode", 1)
--- wbc.rc.ldpc: LDPC encode (for 802.11n/802.11ac)
-o_rc_ldpc = s_rc:option(Flag, "ldpc", translate("LDPC encode enable"), translate("Make sure that LDPC is supported by both tx & rx Wi-Fi card"))
-o_rc_ldpc.default = 0
-o_rc_ldpc:depends("wifimode", "1")
--- wbc.rc.stbc: STBC encode (for 802.11n/802.11ac)
-o_rc_stbc = s_rc:option(ListValue, "stbc", translate("STBC encode enable"), translate("Make sure that STBC is supported by both tx & rx Wi-Fi card"))
-o_rc_stbc.default = 0
-o_rc_stbc:depends("wifimode", "1")
-o_rc_stbc:value(0, translate("Do not use"))
-o_rc_stbc:value(1, translate("1 Stream"))
-o_rc_stbc:value(2, translate("2 Streams"))
-o_rc_stbc:value(3, translate("3 Streams"))
-
-
--- wbc.rc.retrans: R/C TX Retransmission Count
-o_rc_retrans = s_rc:option(ListValue, "retrans", translate("R/C TX Retransmission Count"))
-o_rc_retrans:value(1, translate("Send each frame once"))
-o_rc_retrans:value(2, translate("Twice"))
-o_rc_retrans:value(3, translate("Three times"))
-o_rc_retrans.default = 2
-o_rc_retrans:depends("transmode", 0)
-o_rc_retrans:depends("transmode", 2)
-
-
-local apply = luci.http.formvalue("cbi.apply")
-if apply then
-	luci.sys.exec("/etc/init.d/ezwifibroadcast enable")
-    luci.sys.exec("/etc/init.d/ezwifibroadcast restart")
-end
-
-return m
