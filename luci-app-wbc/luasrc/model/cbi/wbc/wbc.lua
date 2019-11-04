@@ -180,7 +180,6 @@ o_video_frametype:value(0, "DATA Short")
 o_video_frametype:value(1, "DATA Standard")
 o_video_frametype:value(2, "RTS")
 o_video_frametype.default = 0
-
 -- wbc.video.rxbuf: RX Buf Size
 o_video_rxbuf = s_video:option(Value, "rxbuf", translate("RX Buf Size"))
 o_video_rxbuf.default = 0
@@ -211,25 +210,11 @@ o_video_imgsize:value("1280x720")
 o_video_imgsize:value("1640x922")
 o_video_imgsize:value("1920x1080")
 o_video_imgsize:depends("mode", "tx")
--- wbc.video.bitrate_mode: Bitrate Mode
-o_video_bitrate_mode = s_video:option(ListValue, "bitrate_mode", translate("Video Bitrate Mode"))
-o_video_bitrate_mode.rmempty = false
-o_video_bitrate_mode:value("auto", translate("Auto"))
-o_video_bitrate_mode:value("manual", translate("Manual"))
-o_video_bitrate_mode:depends("mode", "tx")
-o_video_bitrate_mode.default = "auto"
--- wbc.video.bitrate_percent: Bitrate Percent
-o_video_bitrate_percent = s_video:option(Value, "bitrate_percent", translate("Video Bitrate Percent"))
-o_video_bitrate_percent.default = 65
-o_video_bitrate_percent.placeholder = 65
-o_video_bitrate_percent.datatype = "range(0,100)"
-o_video_bitrate_percent:depends("bitrate_mode", "auto")
--- wbc.video.bitrate_manual: Bitrate Manual
-o_video_bitrate_manual = s_video:option(Value, "bitrate_manual", translate("Video Bitrate Manual (kbit/s)"))
-o_video_bitrate_manual.default = 5000
-o_video_bitrate_manual.placeholder = 5000
-o_video_bitrate_manual.datatype = "range(100,16000)"
-o_video_bitrate_manual:depends("bitrate_mode", "manual")
+-- wbc.video.bitrate: Bitrate
+o_video_bitrate = s_video:option(Value, "bitrate", translate("Video Bitrate (kbit/s)"), "<a href='"..luci.dispatcher.build_url("admin/wbc/tx_measure").."'>"..translate("Perform tx_measure with saved config").."</a>")
+o_video_bitrate.default = 2000
+o_video_bitrate.placeholder = 2000
+o_video_bitrate.datatype = "range(100,16000)"
 -- wbc.video.keyframerate: Keyframe Rate
 o_video_keyframerate = s_video:option(Value, "keyframerate", translate("Key Frame Rate"))
 o_video_keyframerate.default = 5
@@ -237,7 +222,7 @@ o_video_keyframerate.placeholder = 5
 o_video_keyframerate.datatype = "range(2,10)"
 o_video_keyframerate:depends("mode", "tx")
 -- wbc.video.extraparams: raspivid Extra Params
-o_video_extraparams = s_video:option(Value, "extraparams", translate("raspivid Extra Params"), "<a href='https://github.com/rodizio1/EZ-WifiBroadcast/wiki/Expert-~-Raspivid-camera-settings'>Learn more</a>")
+o_video_extraparams = s_video:option(Value, "extraparams", translate("raspivid Extra Params"), "<a href='https://github.com/rodizio1/EZ-WifiBroadcast/wiki/Expert-~-Raspivid-camera-settings'>"..translate("Learn more").."</a>")
 o_video_extraparams.default = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams.placeholder = '-cd H264 -n -fl -ih -pf high -if both -ex sports -mm average -awb horizon'
 o_video_extraparams:depends("mode", "tx")
@@ -373,13 +358,6 @@ o_telemetry_savepath = s_telemetry:option(Value, "telemetry", translate("Save Te
 o_telemetry_savepath.default = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath.placeholder = '/mnt/sda1/wbc_telemetry'
 o_telemetry_savepath:depends("save_enable", 1)
---[[
--- wbc.telemetry.osd_ini_enable: 
---	Use osd .ini in openwrt instead of the one in /boot/ in rpi 
-o_telemetry_osd_ini_enable = s_telemetry:option(Flag, "osd_ini_enable", translate("RPi get osd config from OpenWrt"), translate("Or will use /boot/osdconfig.ini"))
-o_telemetry_osd_ini_enable.rmempty = false
-o_telemetry_osd_ini_enable:depends("mode", "rx")
-]]--
 -- wbc.telemetry.encrypt_enable: telemetry Encrypt Enable
 o_telemetry_encrypt_enable = s_telemetry:option(Flag, "encrypt_enable", translate("Encrypt"))
 o_telemetry_encrypt_enable.rmempty = false
