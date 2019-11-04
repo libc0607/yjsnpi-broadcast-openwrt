@@ -1,8 +1,10 @@
 module("luci.controller.wbc", package.seeall)
 
-http = require "luci.http"
-fs = require "nixio.fs"
-sys  = require "luci.sys"
+local http = require "luci.http"
+local fs = require "nixio.fs"
+local sys  = require "luci.sys"
+local uci = require "luci.model.uci".cursor()
+local ntm = require "luci.model.network".init()
 
 log_file = "/tmp/wbc.log"
 
@@ -58,14 +60,15 @@ function set_wireless()
 	local j = {}
 	-- todo: should use uci.cursor
 	if w_freq then
+		uci:set("wbc", "", "")
 		sys.exec("uci set wbc.nic.freq="..w_freq)
 	end
 	if w_chanbw then
 		sys.exec("uci set wbc.nic.chanbw="..w_chanbw)
 	end	
 	sys.exec("uci commit")
-	j.freq = no_n(sys.exec("uci get wbc.nic.freq"))
-	j.chanbw = no_n(sys.exec("uci get wbc.nic.chanbw"))
+	j.freq = uci:get_first("wbc", "nic", "freq")
+	j.chanbw = uci:get_first("wbc", "nic", "chanbw")
 	http.prepare_content("application/json")
 	http.write_json(j)
 	http.close()
@@ -163,7 +166,18 @@ function get_tx_measure()
 		tx_measure.stat = 'Success'
 	end
 	tx_measure.speed = result
-	http.prepare_content("application/json")
+	-- to-do: add current config info
+	-- to-do 2: remove fxxking "no_n"
+	tx_measure.tx_config = {}
+	tx_measure.tx_config.chanbw = uci:get_first("wbc", "nic", "chanbw")
+	tx_measure.tx_config.freq = uci:get_first("wbc", "nic", "freq")
+	tx_measure.tx_config.rate = (uci:get_first("wbc", "nic", "ratelevel") == "H") and uci:get_first("wbc", "nic", "txrh") or uci:get_first("wbc", "nic", "txrl")
+	tx_measure.tx_config.packetsize = uci:get_first("wbc", "video", "packetsize")
+	tx_measure.tx_config.frametype = uci:get_first("wbc", "video", "frametype")
+	tx_measure.tx_config.encrypt = uci:get_first("wbc", "video", "encrypt_enable")
+	tx_measure.tx_config.datanum =  uci:get_first("wbc", "video", "datanum")
+	tx_measure.tx_config.fecnum = uci:get_first("wbc", "video", "fecnum")
+	http.prepare_content("application/json") 
 	http.write_json(tx_measure)
 	http.close()
 end
