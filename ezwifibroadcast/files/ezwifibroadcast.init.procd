@@ -143,7 +143,7 @@ udp_bufsize=262144
 video_forward_port=$(uci get wbc.video.listen_port 2>/dev/null)
 video_fps=$(uci get wbc.video.fps 2>/dev/null)
 video_size=$(uci get wbc.video.imgsize 2>/dev/null)
-video_bitrate=1024000
+video_bitrate=$(uci get wbc.video.bitrate 2>/dev/null)
 video_keyframerate=$(uci get wbc.video.keyframerate 2>/dev/null)
 video_extraparams=$(uci get wbc.video.extraparams 2>/dev/null)
 wifimode=$VIDEO_WIFIMODE
@@ -359,14 +359,15 @@ init() {
 		echo "YJSNPI-Broadcast: TX measure..."
 		MEASURE_RESULT=$(measure)
 		echo $MEASURE_RESULT > /tmp/bitrate_measured_kbit
-		echo "    TX measure finished, $(cat /tmp/bitrate_measured_kbit)"
-		if [ "$(uci get wbc.video.bitrate_mode 2>/dev/null)" = "auto" ]; then
-			echo `expr $(cat /tmp/bitrate_measured_kbit) \* $(uci get wbc.video.bitrate_percent 2>/dev/null) / 102400` > /tmp/bitrate_kbit
-		else
-			echo $(uci get wbc.video.bitrate_manual 2>/dev/null) > /tmp/bitrate_kbit
-		fi 
-		BITRATE_BIT=`expr $(cat /tmp/bitrate_kbit) \* 1024`
-		sed -i "s/video_bitrate=1024000/video_bitrate=$BITRATE_BIT/g" $WBC_INI_FILE
+		echo "    TX measure finished, result $(cat /tmp/bitrate_measured_kbit)"
+		echo "    Use bitrate in config file: $(uci get wbc.video.bitrate 2>/dev/null) kbit/s"
+		#if [ "$(uci get wbc.video.bitrate_mode 2>/dev/null)" = "auto" ]; then
+		#	echo `expr $(cat /tmp/bitrate_measured_kbit) \* $(uci get wbc.video.bitrate_percent 2>/dev/null) / 102400` > /tmp/bitrate_kbit
+		#else
+		#	echo $(uci get wbc.video.bitrate 2>/dev/null) > /tmp/bitrate_kbit
+		#fi 
+		#BITRATE_BIT=`expr $(cat /tmp/bitrate_kbit) \* 1024`
+		#sed -i "s/video_bitrate=1024000/video_bitrate=$BITRATE_BIT/g" $WBC_INI_FILE
 	else
 		echo 1024000 > /tmp/bitrate_measured_kbit
 		echo 1000 > /tmp/bitrate_kbit
