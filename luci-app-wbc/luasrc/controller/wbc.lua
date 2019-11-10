@@ -1,10 +1,10 @@
 module("luci.controller.wbc", package.seeall)
 
-local http = require "luci.http"
-local fs = require "nixio.fs"
-local sys  = require "luci.sys"
-local uci = require "luci.model.uci".cursor()
-local ntm = require "luci.model.network".init()
+http = require "luci.http"
+fs = require "nixio.fs"
+sys  = require "luci.sys"
+uci = require "luci.model.uci".cursor()
+ntm = require "luci.model.network".init()
 
 log_file = "/tmp/wbc.log"
 
