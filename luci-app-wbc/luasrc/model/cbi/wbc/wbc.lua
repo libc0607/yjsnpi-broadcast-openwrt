@@ -297,6 +297,7 @@ o_rssi_ratelevel:value("L", translate("Low rate (High power)"))
 o_rssi_ratelevel.default = "L"
 o_rssi_ratelevel:depends("mode", "tx")
 
+--[[
 -- wbc.telemetry: Telemetry settings
 s_telemetry = m:section(TypedSection, "telemetry", translate("Telemetry Settings"))
 s_telemetry.anonymous = true
@@ -420,7 +421,7 @@ o_rc_ratelevel:value("H", translate("High rate (Low power)"))
 o_rc_ratelevel:value("L", translate("Low rate (High power)"))
 o_rc_ratelevel.default = "L"
 o_rc_ratelevel:depends("mode", "tx")
-
+]]--
 
 
 
