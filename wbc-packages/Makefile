@@ -7,13 +7,12 @@ PKG_SOURCE_DATE:=2019-08-14
 PKG_BUILD_DIR=$(BUILD_DIR)/$(PKG_NAME)/$(PKG_NAME)-$(PKG_SOURCE_DATE)
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/cmake.mk
 
 define Package/wbc-packages-mtk
   SECTION:=net
   CATEGORY:=Network
   TITLE:=wbc-packages-mtk
-  DEPENDS:=+coreutils +coreutils-stty +socat +usbutils +linux-serial-test \
+  DEPENDS:=+coreutils +coreutils-stty +socat +usbutils +setsbus +eth-uart \
   +ntfs-3g +block-mount +mount-utils \
   +kmod-usb2 +kmod-usb-ohci +kmod-usb-storage-extras \
   +kmod-fs-vfat +kmod-fs-autofs4 +kmod-fs-ext4 \
