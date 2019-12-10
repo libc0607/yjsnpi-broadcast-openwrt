@@ -12,7 +12,7 @@ define Package/wbc-packages-mtk
   SECTION:=net
   CATEGORY:=Network
   TITLE:=wbc-packages-mtk
-  DEPENDS:=+coreutils +coreutils-stty +socat +usbutils +setsbus +eth-uart \
+  DEPENDS:=+coreutils +coreutils-stty +socat +usbutils +eth-uart \
   +ntfs-3g +block-mount +mount-utils \
   +kmod-usb2 +kmod-usb-ohci +kmod-usb-storage-extras \
   +kmod-fs-vfat +kmod-fs-autofs4 +kmod-fs-ext4 \
