@@ -145,6 +145,7 @@ o_video_mode.rmempty = false
 o_video_mode:value("tx", translate("Transceiver"))
 o_video_mode:value("rx", translate("Receiver"))
 o_video_mode.default = "tx"
+o_video_mode:depends("enable", 1)
 -- wbc.video.listen_port: Listen on port
 o_video_listen_port = s_video:option(Value, "listen_port", translate("Listen On Local Port"))
 o_video_listen_port.datatype = "portrange(1024,65535)"
@@ -164,22 +165,26 @@ o_video_datanum = s_video:option(Value, "datanum", translate("Data packets in a 
 o_video_datanum.default = 8
 o_video_datanum.datatype = "range(1,32)"
 o_video_datanum.placeholder = 8
+o_video_datanum:depends("enable", 1)
 -- wbc.video.fecnum: FEC packets in a block
 o_video_fecnum = s_video:option(Value, "fecnum", translate("FEC packets in a block"))
 o_video_fecnum.default = 4
 o_video_fecnum.datatype = "range(1,32)"
 o_video_fecnum.placeholder = 4
+o_video_fecnum:depends("enable", 1)
 -- wbc.video.packetsize: Bytes per packet
 o_video_packetsize = s_video:option(Value, "packetsize", translate("Bytes per packet"))
 o_video_packetsize.default = 1024
 o_video_packetsize.placeholder = 1024
 o_video_packetsize.datatype = "range(32,1450)"
+o_video_packetsize:depends("enable", 1)
 -- wbc.video.frametype: Frame Type
 o_video_frametype = s_video:option(ListValue, "frametype", translate("Wireless Frame Type"))
 o_video_frametype:value(0, "DATA Short")
 o_video_frametype:value(1, "DATA Standard")
 o_video_frametype:value(2, "RTS")
 o_video_frametype.default = 0
+o_video_frametype:depends("enable", 1)
 -- wbc.video.rxbuf: RX Buf Size
 o_video_rxbuf = s_video:option(Value, "rxbuf", translate("RX Buf Size"))
 o_video_rxbuf.default = 0
@@ -199,6 +204,7 @@ o_video_fps:value(90, "90 fps")
 o_video_fps:value(120, "120 fps")
 o_video_fps:value(144, "144 fps")
 o_video_fps:value(240, "240 fps")
+o_video_fps:depends("enable", 1)
 -- wbc.video.imgsize: Video resolution
 o_video_imgsize = s_video:option(ListValue, "imgsize", translate("Img Size (resolution)"))
 o_video_imgsize.default = "1280x720"
@@ -215,6 +221,7 @@ o_video_bitrate = s_video:option(Value, "bitrate", translate("Video Bitrate (kbi
 o_video_bitrate.default = 2000
 o_video_bitrate.placeholder = 2000
 o_video_bitrate.datatype = "range(100,16000)"
+o_video_bitrate:depends("enable", 1)
 -- wbc.video.keyframerate: Keyframe Rate
 o_video_keyframerate = s_video:option(Value, "keyframerate", translate("Key Frame Rate"))
 o_video_keyframerate.default = 5
@@ -245,6 +252,7 @@ o_video_sysair_forward_port.default = 34999
 -- wbc.video.encrypt_enable: Video Encrypt Enable
 o_video_encrypt_enable = s_video:option(Flag, "encrypt_enable", translate("Encrypt"), translate("May cause high CPU load"))
 o_video_encrypt_enable.rmempty = false
+o_video_encrypt_enable:depends("enable", 1)
 -- wbc.video.password: Encrypt Password
 o_video_encrypt_password = s_video:option(Value, "encrypt_password", translate("Password"))
 o_video_encrypt_password.rmempty = false
@@ -271,6 +279,7 @@ o_rssi_mode.rmempty = false
 o_rssi_mode:value("tx", translate("Transceiver"))
 o_rssi_mode:value("rx", translate("Receiver"))
 o_rssi_mode.default = "tx"
+o_rssi_mode:depends("enable", 1)
 -- wbc.rssi.send_ip_port: RSSI RX Data Send to IP:Port	(rssi_forward/rssi_forward_in)
 o_rssi_send_ip_port = s_rssi:option(Value, "send_ip_port", translate("Send RSSI Data to IP:Port"))
 o_rssi_send_ip_port.datatype = "ipaddrport"
@@ -278,6 +287,7 @@ o_rssi_send_ip_port:depends("mode", "rx")
 -- wbc.rssi.encrypt_enable: rssi Encrypt Enable
 o_rssi_encrypt_enable = s_rssi:option(Flag, "encrypt_enable", translate("Encrypt"))
 o_rssi_encrypt_enable.rmempty = false
+o_rssi_encrypt_enable:depends("enable", 1)
 -- wbc.rssi.password: Encrypt Password
 o_rssi_encrypt_password = s_rssi:option(Value, "encrypt_password", translate("Password"))
 o_rssi_encrypt_password.rmempty = false
@@ -311,12 +321,14 @@ o_telemetry_mode.rmempty = false
 o_telemetry_mode:value("tx", translate("Transceiver"))
 o_telemetry_mode:value("rx", translate("Receiver"))
 o_telemetry_mode.default = "tx"
+o_telemetry_mode:depends("enable", 1)
 -- wbc.telemetry.uart: Telemetry UART Interface
 o_telemetry_uart = s_telemetry:option(ListValue, "uart", translate("Telemetry UART Interface"))
 for k,v in ipairs(tty_list) do 
 	o_telemetry_uart:value(v) 
 end
 o_telemetry_uart.default = "/dev/ttyUSB0"
+o_telemetry_uart:depends("enable", 1)
 -- wbc.telemetry.baud: Telemetry UART Baud rate
 o_telemetry_baud = s_telemetry:option(ListValue, "baud", translate("Telemetry UART Baud Rate"))
 o_telemetry_baud:value(9600, "9600 bps")
@@ -362,6 +374,7 @@ o_telemetry_savepath:depends("save_enable", 1)
 -- wbc.telemetry.encrypt_enable: telemetry Encrypt Enable
 o_telemetry_encrypt_enable = s_telemetry:option(Flag, "encrypt_enable", translate("Encrypt"))
 o_telemetry_encrypt_enable.rmempty = false
+o_telemetry_encrypt_enable:depends("enable", 1)
 -- wbc.telemetry.password: Encrypt Password
 o_telemetry_encrypt_password = s_telemetry:option(Value, "encrypt_password", translate("Password"))
 o_telemetry_encrypt_password.rmempty = false
