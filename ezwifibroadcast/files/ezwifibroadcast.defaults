@@ -37,5 +37,25 @@ set wbc.rssi.enable=0
 set wbc.rssi.mode=tx
 set wbc.rssi.send_ip_port=35002
 set wbc.rssi.encrypt_enable=0
+set wbc.rssi.password=1145141919810
+set wbc.telemetry=telemetry
+set wbc.telemetry.enable=0
+set wbc.telemetry.mode=tx
+set wbc.telemetry.uart=/dev/ttyUSB0
+set wbc.telemetry.baud=57600
+set wbc.telemetry.cts=0
+set wbc.telemetry.retrans=2
+set wbc.telemetry.proto=1
+set wbc.telemetry.bitrate=6
+set wbc.telemetry.mcs=0
+set wbc.telemetry.wifimode=0
+set wbc.telemetry.ldpc=0
+set wbc.telemetry.encrypt_enable=0
+set wbc.telemetry.password=1145141919810
+set wbc.rc=rc
+set wbc.rc.enable=0
+set wbc.rc.mode=tx
+set wbc.rc.uart=/dev/ttyUSB1
+set wbc.rc.proto=sbus
 commit wbc
 EOF

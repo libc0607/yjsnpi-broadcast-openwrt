@@ -266,6 +266,79 @@ EOF
 			echo "" >> $WBC_INI_FILE
 		fi
 	fi
+	
+	
+	if [ $(uci get wbc.telemetry.enable 2>/dev/null) -eq 1 ]; then
+		echo "YJSNPI-Broadcast: Telemetry Enabled."
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "rx" ]; then
+			cat >> $WBC_INI_FILE <<EOF
+[rx_telemetry]
+port=1
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+udp_ip=$(uci get wbc.telemetry.send_ip_port 2>/dev/null |cut -d ':' -f 1)
+udp_port=$(uci get wbc.telemetry.send_ip_port 2>/dev/null |cut -d ':' -f 2)
+udp_bind_port=$RX_TELE_UDP_BIND_PORT
+recording=$(uci get wbc.telemetry.save_enable 2>/dev/null)
+recording_dir=$(uci get wbc.telemetry.savepath 2>/dev/null)
+encrypt=$(uci get wbc.telemetry.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.telemetry.password 2>/dev/null)
+
+EOF
+			echo "" >> $WBC_INI_FILE
+		fi
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "tx" ]; then 
+			if [ "$(uci get wbc.telemetry.ratelevel 2>/dev/null)" = "H" ]; then
+				TELE_LDPC=0
+				TELE_STBC=0
+				TELE_WIFIMODE=0
+				TELE_WIFIMODE_CHAR=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 1)
+				TELE_WIFI_RATE=$(uci get wbc.nic.txrh 2>/dev/null|cut -d ':' -f 2)
+				if [ "$TELE_WIFIMODE_CHAR" = "n" ]; then
+					TELE_WIFIMODE=1
+					TELE_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+					TELE_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+				fi
+			fi
+			if [ "$(uci get wbc.telemetry.ratelevel 2>/dev/null)" = "L" ]; then
+				TELE_LDPC=0
+				TELE_STBC=0
+				TELE_WIFIMODE=0
+				TELE_WIFIMODE_CHAR=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 1)
+				TELE_WIFI_RATE=$(uci get wbc.nic.txrl 2>/dev/null|cut -d ':' -f 2)
+				if [ "$TELE_WIFIMODE_CHAR" = "n" ]; then
+					TELE_WIFIMODE=1
+					TELE_LDPC=$(uci get wbc.nic.ldpc 2>/dev/null)
+					TELE_STBC=$(uci get wbc.nic.stbc 2>/dev/null)
+				fi
+			fi
+			
+			cat >> $WBC_INI_FILE <<EOF
+[tx_telemetry]
+cts_protection=$(uci get wbc.telemetry.cts 2>/dev/null)
+port=1
+retrans_count=$(uci get wbc.telemetry.retrans 2>/dev/null)
+tele_protocol=$(uci get wbc.telemetry.proto 2>/dev/null)
+rate=$TELE_WIFI_RATE
+mode=0
+nic=$(uci get wbc.nic.iface 2>/dev/null)
+wifimode=$TELE_WIFIMODE
+ldpc=$TELE_LDPC
+stbc=$TELE_STBC
+encrypt=$(uci get wbc.telemetry.encrypt_enable 2>/dev/null)
+password=$(uci get wbc.telemetry.password 2>/dev/null)
+EOF
+			echo "" >> $WBC_INI_FILE
+		fi
+	fi
+	
+	if [ $(uci get wbc.rc.enable 2>/dev/null) -eq 1 ]; then
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "tx" ]; then
+		# wip
+		fi
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "rx" ]; then
+		
+		fi
+	fi
 }
 
 init() {
@@ -274,10 +347,10 @@ init() {
 	gen_ini
 
 	# -0.5. and osd ini
-#	if [ $(uci get wbc.telemetry.osd_ini_enable 2>/dev/null) -eq 1 ] >/dev/null 2>&1 ; then
-#		rm /www/wbc-osdconfig.ini >/dev/null 2>&1
-#		ln -s /etc/wbc/osdconfig.ini /www/wbc-osdconfig.ini
-#	fi
+	if [ $(uci get wbc.telemetry.osd_ini_enable 2>/dev/null) -eq 1 ] >/dev/null 2>&1 ; then
+		rm /www/wbc-osdconfig.ini >/dev/null 2>&1
+		ln -s /etc/wbc/osdconfig.ini /www/wbc-osdconfig.ini
+	fi
 	
 	# 0. Init Wi-Fi card here
 	echo "YJSNPI-Broadcast: Init Wi-Fi Card..."
@@ -383,6 +456,54 @@ rssi_rx_instance() {
 	procd_close_instance
 }
 
+telemetry_tx_instance() {
+	procd_open_instance "telemetry_tx"
+	procd_set_param command socat -u $(uci get wbc.telemetry.uart 2>/dev/null),b$(uci get wbc.telemetry.baud 2>/dev/null),raw 
+	procd_append_param command EXEC:"/usr/sbin/tx_telemetry $WBC_INI_FILE"
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
+	procd_set_param pidfile /var/run/wbc/telemetry_tx.pid
+	procd_close_instance
+}
+
+telemetry_rx_instance() {
+	stty -F $(uci get wbc.telemetry.uart 2>/dev/null) $STTY_ARGS $(uci get wbc.telemetry.baud 2>/dev/null) 
+	procd_open_instance "telemetry_rx"
+	procd_set_param command /usr/sbin/rx_rc_telemetry_buf $WBC_INI_FILE
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
+	procd_set_param pidfile /var/run/wbc/telemetry_rx.pid
+	procd_close_instance
+}
+
+rc_tx_instance() {
+	if [ "$(uci get wbc.rc.proto 2>/dev/null)" = "sbus" ]; then
+		/usr/sbin/setsbus $(uci get wbc.rc.uart 2>/dev/null)
+		procd_open_instance "rc_tx"
+		procd_set_param command /usr/sbin/tx_rc_sbus 
+		procd_set_param stdout 1
+		procd_set_param stderr 1
+		procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
+		procd_set_param pidfile /var/run/wbc/rc_tx.pid
+		procd_close_instance
+	fi
+}
+
+rc_rx_instance() {
+	if [ "$(uci get wbc.rc.proto 2>/dev/null)" = "sbus" ]; then
+		/usr/sbin/setsbus $(uci get wbc.rc.uart 2>/dev/null)
+		procd_open_instance "rc_rx"
+		procd_set_param command /usr/sbin/rx_rc_sbus 
+		procd_set_param stdout 1
+		procd_set_param stderr 1
+		procd_set_param respawn ${respawn_threshold:-36000} ${respawn_timeout:-1} ${respawn_retry:-10000}
+		procd_set_param pidfile /var/run/wbc/rc_rx.pid
+		procd_close_instance
+	fi
+}
+
 start_video() {
 	# 1. Video TX/RX Instance
 	if [ $(uci get wbc.video.enable 2>/dev/null) -eq 1 ]; then
@@ -412,13 +533,45 @@ start_rssi() {
 	fi
 }
 
+start_telemetry() {
+	if [ $(uci get wbc.telemetry.enable 2>/dev/null) -eq 1 ]; then
+		echo "YJSNPI-Broadcast: Telemetry Enabled."
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "rx" ]; then
+			 telemetry_rx_instance
+			echo "    Telemetry RX Mode, redirect to $(uci get wbc.telemetry.send_ip_port 2>/dev/null) and $(uci get wbc.telemetry.uart 2>/dev/null)..."
+		fi
+
+		if [ "$(uci get wbc.telemetry.mode 2>/dev/null)" = "tx" ]; then 
+			telemetry_tx_instance
+			echo "YJSNPI-Broadcast: Telemetry TX Mode on $(uci get wbc.telemetry.uart 2>/dev/null)..."
+		fi
+	fi
+}
+
+start_rc() {
+	if [ $(uci get wbc.rc.enable 2>/dev/null) -eq 1 ]; then
+		echo "YJSNPI-Broadcast: R/C Enabled."
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "rx" ]; then
+			 rc_rx_instance
+			echo "    R/C RX Mode on $(uci get wbc.rc.uart 2>/dev/null)..."
+		fi
+
+		if [ "$(uci get wbc.rc.mode 2>/dev/null)" = "tx" ]; then 
+			rc_tx_instance
+			echo "	R/C TX Mode on $(uci get wbc.rc.uart 2>/dev/null)..."
+		fi
+	fi
+}
+
 start_service() {
 	if [ $(uci get wbc.wbc.enable 2>/dev/null) -eq 0 ]; then 
 		exit
 	fi
 	init
 	start_video
+	start_telemetry
 	start_rssi
+#	start_rc
 	echo `date '+%s'` >/var/run/wbc/restart_timestamp
 #	echo `md5sum /etc/config/wbc | cut -d ' ' -f 1` >/var/run/wbc/restart_config_md5sum
 }
