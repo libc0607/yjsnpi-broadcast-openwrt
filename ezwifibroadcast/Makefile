@@ -52,8 +52,8 @@ define Package/ezwifibroadcast/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_tx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sysair_forward_in $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_test $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_rc_sbus $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_sbus $(1)/usr/sbin/
+#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_rc_sbus $(1)/usr/sbin/
+#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_sbus $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init.procd $(1)/etc/init.d/ezwifibroadcast
 #	$(INSTALL_DIR) $(1)/etc/wbc
