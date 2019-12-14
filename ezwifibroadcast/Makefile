@@ -41,19 +41,19 @@ define Package/ezwifibroadcast/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssitx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_rawsock $(1)/usr/sbin/   
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_measure $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_telemetry $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_telemetry $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssirx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rssi_forward $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_status $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/check_alive $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry_buf $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_telemetry_buf $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_rx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sharedmem_init_tx $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/sysair_forward_in $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_test $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_rc_sbus $(1)/usr/sbin/
-#	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_sbus $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/tx_rc_sbus $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/rx_rc_sbus $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/ezwifibroadcast.init.procd $(1)/etc/init.d/ezwifibroadcast
 #	$(INSTALL_DIR) $(1)/etc/wbc
