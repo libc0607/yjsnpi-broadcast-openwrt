@@ -46,6 +46,8 @@ o_wbc_confpath = s_wbc:option(Value, "confpath", translate("Config file on HTTP"
 o_wbc_confpath.default = '/wbc-config.ini'
 o_wbc_confpath:depends("enable", 1)
 
+
+
 -- wbc.nic: Wi-Fi settings
 s_nic = m:section(TypedSection, "nic", translate("Wi-Fi Settings"))
 s_nic.anonymous = true
@@ -64,6 +66,21 @@ for k,v in ipairs(freq_list) do
 	o_nic_freq:value(v, v.." MHz") 
 end
 o_nic_freq.default = 2437
+-- wbc.nic.mixer_enable: External Mixer Enable
+o_nic_mixer_enable = s_nic:option(Flag, "mixer_enable", translate("Enable External Mixer"))
+o_nic_mixer_enable.rmempty = false
+-- wbc.nic.mixer_uart: External Mixer UART Interface
+o_nic_mixer_uart = s_nic:option(ListValue, "mixer_uart", translate("External Mixer UART Interface"))
+for k,v in ipairs(tty_list) do 
+	o_nic_mixer_uart:value(v) 
+end
+o_nic_mixer_uart.default = "/dev/ttyUSB1"
+o_nic_mixer_uart:depends("mixer_enable", 1)
+-- wbc.nic.mixer_freq: External Mixer LO Frequency
+o_nic_mixer_freq = s_nic:option(Value, "mixer_freq", translate("Mixer LO Frequency (kHz, 85000~2700000, step 10kHz)"))
+o_nic_mixer_freq.rmempty = false
+o_nic_mixer_freq.default = 2000000
+o_nic_mixer_freq:depends("mixer_enable", 1)
 -- wbc.nic.chanbw: Channel Bandwidth
 o_nic_chanbw = s_nic:option(ListValue, "chanbw", translate("Channel Bandwidth"), translate("Note: ath9k only"))
 o_nic_chanbw.rmempty = false
@@ -73,7 +90,7 @@ o_nic_chanbw:value(20, "20 MHz")
 o_nic_chanbw.default = 20
 -- wbc.nic.txpcust: Use Custom TX Power
 o_nic_txpcust = s_nic:option(Flag, "txpcust", translate("Use Custom TX Power (ath9k only)"), 
-									translate("Note: ath9k only; Too high will cause high EVM and/or burn your card. "))
+									translate("Note: ath9k only; Too high will cause high EVM and/or burn your card & PA; External PAs/Attenuators not included."))
 o_nic_txpcust.rmempty = false
 -- wbc.nic.txph: High rate level TX Power (ath9k only)
 o_nic_txph = s_nic:option(ListValue, "txph", translate("High rate level TX Power"))
@@ -387,53 +404,6 @@ o_telemetry_ratelevel:value("L", translate("Low rate (High power)"))
 o_telemetry_ratelevel.default = "L"
 o_telemetry_ratelevel:depends("mode", "tx")
 
--- wbc.rc: R/C settings
-s_rc = m:section(TypedSection, "rc", translate("R/C Settings"))
-s_rc.anonymous = true
-s_rc.addremove = false
--- wbc.rc.enable: R/C Enable
-o_rc_enable = s_rc:option(Flag, "enable", translate("Enable R/C"))
-o_rc_enable.rmempty = false
--- wbc.rc.mode: R/C Mode
--- depends on: wbc.rc.enable
-o_rc_mode = s_rc:option(ListValue, "mode", translate("Mode"))
-o_rc_mode.rmempty = false
-o_rc_mode:value("tx", translate("Transceiver"))
-o_rc_mode:value("rx", translate("Receiver"))
-o_rc_mode.default = "tx"
-o_rc_mode:depends("enable", 1)
--- wbc.rc.uart: R/C UART Interface
--- depends on: wbc.rc.enable
-o_rc_uart = s_rc:option(ListValue, "uart", translate("R/C UART Interface"))
-for k,v in ipairs(tty_list) do 
-	o_rc_uart:value(v) 
-end
-o_rc_uart.default = "/dev/ttyUSB0"
-o_rc_uart:depends("enable", 1)
--- wbc.rc.proto: R/C TX Protocol
--- depends on: wbc.rc.enable
-o_rc_proto = s_rc:option(ListValue, "proto", translate("R/C Protocol"))
-o_rc_proto:value("sbus", translate("S.BUS"))
-o_rc_proto:value("raw", translate("Raw Data"))
-o_rc_proto.default = 0
-o_rc_proto:depends("enable", 1)
--- wbc.rc.encrypt_enable: R/C Encrypt Enable
-o_rc_encrypt_enable = s_rc:option(Flag, "encrypt_enable", translate("Encrypt"))
-o_rc_encrypt_enable.rmempty = false
-o_rc_encrypt_enable:depends("enable", 1)
--- wbc.rc.password: Encrypt Password
-o_rc_encrypt_password = s_rc:option(Value, "encrypt_password", translate("Password"))
-o_rc_encrypt_password.rmempty = false
-o_rc_encrypt_password.password = true
-o_rc_encrypt_password:depends("encrypt_enable", 1)
--- wbc.rc.ratelevel: rc transmission rate level
-o_rc_ratelevel = s_rc:option(ListValue, "ratelevel", translate("rc transmission rate level"))
-o_rc_ratelevel.rmempty = false
-o_rc_ratelevel:value("H", translate("High rate (Low power)"))
-o_rc_ratelevel:value("L", translate("Low rate (High power)"))
-o_rc_ratelevel.default = "L"
-o_rc_ratelevel:depends("mode", "tx")
-
 
 
 
@@ -448,7 +418,54 @@ return m
 
 --[[
 
--- 4G will come, but not now
+-- -- wbc.rc: R/C settings
+-- s_rc = m:section(TypedSection, "rc", translate("R/C Settings"))
+-- s_rc.anonymous = true
+-- s_rc.addremove = false
+-- -- wbc.rc.enable: R/C Enable
+-- o_rc_enable = s_rc:option(Flag, "enable", translate("Enable R/C"))
+-- o_rc_enable.rmempty = false
+-- -- wbc.rc.mode: R/C Mode
+-- -- depends on: wbc.rc.enable
+-- o_rc_mode = s_rc:option(ListValue, "mode", translate("Mode"))
+-- o_rc_mode.rmempty = false
+-- o_rc_mode:value("tx", translate("Transceiver"))
+-- o_rc_mode:value("rx", translate("Receiver"))
+-- o_rc_mode.default = "tx"
+-- o_rc_mode:depends("enable", 1)
+-- -- wbc.rc.uart: R/C UART Interface
+-- -- depends on: wbc.rc.enable
+-- o_rc_uart = s_rc:option(ListValue, "uart", translate("R/C UART Interface"))
+-- for k,v in ipairs(tty_list) do 
+	-- o_rc_uart:value(v) 
+-- end
+-- o_rc_uart.default = "/dev/ttyUSB0"
+-- o_rc_uart:depends("enable", 1)
+-- -- wbc.rc.proto: R/C TX Protocol
+-- -- depends on: wbc.rc.enable
+-- o_rc_proto = s_rc:option(ListValue, "proto", translate("R/C Protocol"))
+-- o_rc_proto:value("sbus", translate("S.BUS"))
+-- o_rc_proto:value("raw", translate("Raw Data"))
+-- o_rc_proto.default = 0
+-- o_rc_proto:depends("enable", 1)
+-- -- wbc.rc.encrypt_enable: R/C Encrypt Enable
+-- o_rc_encrypt_enable = s_rc:option(Flag, "encrypt_enable", translate("Encrypt"))
+-- o_rc_encrypt_enable.rmempty = false
+-- o_rc_encrypt_enable:depends("enable", 1)
+-- -- wbc.rc.password: Encrypt Password
+-- o_rc_encrypt_password = s_rc:option(Value, "encrypt_password", translate("Password"))
+-- o_rc_encrypt_password.rmempty = false
+-- o_rc_encrypt_password.password = true
+-- o_rc_encrypt_password:depends("encrypt_enable", 1)
+-- -- wbc.rc.ratelevel: rc transmission rate level
+-- o_rc_ratelevel = s_rc:option(ListValue, "ratelevel", translate("rc transmission rate level"))
+-- o_rc_ratelevel.rmempty = false
+-- o_rc_ratelevel:value("H", translate("High rate (Low power)"))
+-- o_rc_ratelevel:value("L", translate("Low rate (High power)"))
+-- o_rc_ratelevel.default = "L"
+-- o_rc_ratelevel:depends("mode", "tx")
+
+-- 4G won't come, and not now
 
 -- wbc.rc.transmode: R/C Transfer Mode
 -- depends on: wbc.rc.enable
